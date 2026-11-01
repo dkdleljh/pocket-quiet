@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+artifacts/
+third-party/*.exe
+*.user
+*.log
+*.csv
+*.zip
+.vs/

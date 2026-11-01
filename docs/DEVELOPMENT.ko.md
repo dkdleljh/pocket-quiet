@@ -1,0 +1,135 @@
+# Pocket Quiet 개발명세서
+
+버전 0.1.0 / 초기 공개판 / Windows x64
+
+## 1. 범위와 설계 원칙
+
+대상은 GPD Pocket 4 한 계열이며 일반적인 데스크톱·노트북 팬 제어 제품이 아니다. 기기별 EC 접근을 명시적으로 제한하고, 제어 엔진을 하드웨어에서 분리해 정책 검증이 가능하도록 한다. UI·서비스·감시 프로세스를 분리하며, 네트워크나 AI 서비스에 의존하지 않는다.
+
+초기 기획의 일반 권한 UI 대신 첫 배포판은 **관리자 권한 UI + 관리자 전용 IPC**를 사용한다. 권한 없는 프로세스가 팬 설정을 변경할 수 있는 표면을 줄이는 선택이다. 세밀한 사용자별 권한 위임과 관리자 권한이 필요 없는 UI는 후속 개선 항목이다.
+
+## 2. 프로젝트 구조
+
+```text
+src/PocketQuiet.Core/      순수 제어 정책, 데이터 모델, JSON 프로토콜
+src/PocketQuiet.Service/   센서/EC 접근, 서비스 수명 주기, IPC, watchdog
+src/PocketQuiet.App/       WPF 화면, 트레이, 곡선 편집, 그래프
+ tests/PocketQuiet.Tests/  크로스 플랫폼 검증 실행 파일
+scripts/                  빌드, 패키징, 설치, 제거, 복구
+ docs/                    설명서, 명세, 검증 기록, 화면
+third-party/              로컬 패키징 시 공식 드라이버 설치 파일
+```
+
+프로젝트 언어는 C#, 프레임워크는 .NET 10이다. WPF/Windows Forms NotifyIcon은 Windows 전용이다. 서비스는 ServiceBase 및 Service Control Manager를 사용한다. .NET 런타임을 포함한 win-x64 self-contained 배포를 사용하므로 사용자 컴퓨터에 SDK나 런타임을 별도 설치하지 않는다.
+
+## 3. 실행 구성과 권한
+
+- UI: `PocketQuiet.exe`, requireAdministrator manifest. 사용자 입력을 named pipe로 전달하며 직접 EC에 접근하지 않는다.
+- 서비스: `PocketQuiet.Service.exe`, 서비스 이름 `PocketQuiet`, LocalSystem 계정, 자동 시작. 시작 시 항상 Firmware 모드다.
+- 감시 프로세스: 같은 서비스 실행 파일을 `--watchdog <pid> <event-name>`으로 시작한다. 서비스가 만드는 고유한 named auto-reset event를 감시한다.
+- 하드웨어 독점: `Global\PocketQuiet.Hardware` mutex를 제어 스레드가 생애 동안 소유한다. CLI 진단·복구·시험은 mutex를 즉시 획득하지 못하면 종료한다.
+- 설치 경로는 Program Files이며 일반 사용자에게 실행·읽기만 허용한다. ProgramData 설정·로그는 관리자/SYSTEM에만 쓰기를 허용한다.
+
+하드웨어 mutex는 Pocket Quiet 프로세스 사이의 독점만 제공한다. 다른 제조사의 프로그램과 펌웨어는 같은 mutex를 따르지 않는다. 알려진 충돌 프로세스 탐지와 쓰기 검증을 사용하지만 모든 외부 접근을 막을 수는 없다.
+
+## 4. 하드웨어 접근
+
+LibreHardwareMonitorLib 0.9.6을 고정한다. `Computer`는 CPU와 GPU 그룹만 활성화한다. 각 하드웨어와 하위 하드웨어를 갱신하고 유효한 온도·CPU Total load·CPU Package power를 수집한다. 유효한 CPU 온도가 반드시 존재해야 하며 GPU 값만으로 제어를 허용하지 않는다. 반환 온도는 CPU 및 AMD GPU 온도의 최대값이다.
+
+팬 접근은 공식 PawnIO 드라이버와 LibreHardwareMonitor에 포함된 서명된 `LibreHardwareMonitor.Resources.PawnIo.LpcIO.bin` 모듈을 사용한다. 현재 공개 로더가 internal이므로 reflection을 사용한다. 이 때문에 라이브러리 버전을 임의로 올리면 안 된다. 초기화 시 모듈 로드 여부를 검사하고 `ExecuteHr`의 HRESULT와 반환 길이를 검사한다. 실패를 0으로 오해하지 않도록 단순 `Execute` 반환값에만 의존하지 않는다.
+
+### 허용 기기와 레지스터
+
+- SMBIOS 제조사: `GPD`
+- 제품 코드: `G1628-04`, `G1628-04-L`
+- 수동 제어 허용 BIOS 문자열: 정확히 `2.11`
+- LPC slot: 1
+- EC RPM: 0x0478 상위 바이트, 0x0479 하위 바이트
+- EC 팬 출력/자동 제어: 0x047A
+- 자동 제어: 0
+- 수동 출력 원시 범위: 1~244, 앱의 실제 허용 출력은 30~100%
+
+RPM은 Linux upstream 구현에 맞춰 두 주소에서 big-endian으로 읽는다. high-low-high 순서로 읽어 high 값이 바뀌면 최대 3회 재시도한다. 공개 플러그인의 단일 포트 word 읽기를 그대로 사용하지 않는다.
+
+수동 출력 변환은 `roundAwayFromZero(percent × 243 / 100) + 1`이다. 쓰기 직후 0x047A를 다시 읽고 일치 여부를 검사한다. 고정값 주소를 외부 IPC로 제공하거나 임의 주소 읽기·쓰기를 허용하지 않는다.
+
+원본 프로토콜 참고: [Linux gpd-fan.c](https://github.com/torvalds/linux/blob/master/drivers/hwmon/gpd-fan.c), [GPD 플러그인](https://github.com/chenx-dust/FanControl.GPDPlugin). 기존 기기와 비슷하다는 이유로 새로운 기기를 자동 지원하지 않는다.
+
+## 5. 제어 알고리즘
+
+입력: 타임스탬프, CPU/APU 대표 온도, RPM, CPU 사용률, 패키지 전력. 후자의 두 값은 표시·기록 전용이다.
+
+1. Firmware 모드이면 알고리즘 상태를 초기화하고 자동 제어를 반환한다.
+2. 온도는 finite 5~115°C, 샘플 나이는 3초 이하, 미래 시각은 1초 이내여야 한다. 이전 샘플보다 시간이 증가해야 한다.
+3. RPM은 0~12000 범위여야 한다. 0은 별도의 정지 검출 상태로 처리한다.
+4. dt는 0.05~3초로 제한한다. 평상시 온도 평균은 `EMA += (1-exp(-dt/4)) × (T-EMA)`이다.
+5. AI 모드의 유효 온도는 `EMA + clamp(3 × dT/dt, 0, 8) + preference × 5`이다. preference 범위는 [-1,1]. 이는 예측 모델이나 기계학습이 아닌 결정론적 온도 추세 보정이다.
+6. 프리셋 또는 사용자 곡선의 점 사이에서 선형 보간한다.
+7. 75°C 이상일 때 목표 출력 최저 65%, 80°C 이상 최저 90%를 적용한다.
+8. 목표가 현재 출력보다 높으면 초당 최대 12%포인트 증가한다. 목표가 현재 출력보다 3%포인트 이상 낮은 상태가 20초 지속되면 초당 최대 1.5%포인트 감소한다.
+9. 출력은 [30,100]으로 제한한다. 엔진 초기 출력 상태는 60%다.
+10. 85°C 이상에서는 위 평상시 제어를 우회하고 100%를 즉시 반환한다.
+
+고온 기준과 최소 출력은 프로그램 정책이다. 제품 제조사의 공식 열적 한계 또는 안전 인증을 뜻하지 않는다. 팬 정지 기능, TDP 변경, CPU 부스트 변경, 전압 변경, 클라우드 AI, 장기 학습은 구현 범위에 포함하지 않는다.
+
+## 6. 장애 상태
+
+- 온도 누락·이상·시간 오류 / 잘못된 RPM: Fault 결정, Firmware 복귀 시도, 설정 모드를 Firmware로 전환.
+- RPM 0이 연속 2회: 최대 출력 요청. 연속 5회: Firmware 복귀 및 오류 표시.
+- 드라이버 접근 실패·쓰기 검증 실패: 제어 중단과 복귀 시도. 복귀도 실패하면 오류 메시지에 별도로 기록.
+- 초기화 실패: 오류 상태를 유지한다. 서비스 재시작으로 재시도할 수 있다.
+- 정상 서비스 중지·종료: 수동 제어 중이면 Firmware 복귀를 시도하고 하드웨어를 닫는다.
+- 절전 이벤트: 수동 제어 해제와 Firmware 모드 설정. 복귀 이벤트: 센서/EC 객체 재생성 및 수동 모드 자동 재적용 금지.
+- 감시 신호 8초 이상 지연: 서비스 프로세스 종료, 하드웨어 mutex 획득 시 자동 복귀, SCM에 의한 재시작. 재시작 간격은 5초/10초/30초 설정이다.
+
+시스템 전체 정지나 커널 I/O 호출이 반환되지 않는 경우, 감시 프로세스 자체의 실패, 하드웨어 접근 실패에 대해서는 복귀를 보장하지 않는다. 드라이버 호출은 프로세스 수준의 감시 대상이며 하드웨어 watchdog은 아니다.
+
+## 7. IPC 명세
+
+Named pipe: `PocketQuiet.v1`. 로컬 관리자 및 SYSTEM에만 FullControl을 허용하고 Network SID를 거부한다. 요청은 한 줄 JSON이고 최대 8192자, 연결 후 읽기/쓰기 제한시간은 2.5초다. UI 클라이언트는 3.5초 제한시간을 사용한다.
+
+```json
+{"Command":"status"}
+```
+
+```json
+{"Command":"apply","Settings":{"Mode":"Adaptive","Preference":0,"Curve":[{"Temperature":40,"Output":35},{"Temperature":55,"Output":45},{"Temperature":65,"Output":55},{"Temperature":75,"Output":75},{"Temperature":85,"Output":100}]}}
+```
+
+```json
+{"Command":"reset"}
+```
+
+응답은 `Ok`, `Status`, `Error`다. Status는 Version, Time(UTC), Device, Bios, Supported, Ready, Temperature, Rpm, CpuLoad, Power, Output, ActiveMode, Reason, Error, Settings를 포함한다. Mode는 문자열 enum이다. 잘못된 enum, NaN/Infinity, 범위 이탈, 비단조 곡선, 비정상 마지막 점은 거부한다. 지원 범위·최근 센서값·충돌 도구 확인을 통과해야 수동 모드를 적용한다.
+
+서비스는 한 번에 한 연결을 처리하며 UI는 SemaphoreSlim으로 요청을 직렬화한다. 서버는 읽기 작업과 제어 스레드를 분리하고 설정 변경 시 lock을 사용한다. 수동 설정 적용 응답은 접수 결과이며 다음 센서 주기에 실제 적용 상태가 반영된다. Firmware 복귀는 요청 처리 중 수행한다.
+
+## 8. 저장과 개인정보
+
+`%ProgramData%\PocketQuiet\settings.json`에는 마지막 요청 설정을 저장하되 서비스 시작 시 모드는 Firmware로 덮어쓴다. Apply 저장은 임시 파일을 쓴 뒤 교체한다. Reset은 기본 설정을 저장한다. 설정을 읽거나 검증하지 못하면 기본값을 사용하고 오류를 기록한다.
+
+CSV는 UTC 시각과 숫자 센서값, 모드만 저장한다. 일일 파일은 약 20MB, 보존기간은 14일이다. errors.log는 약 2MB에서 .old 파일 하나로 회전한다. 로그 기록 실패가 냉각 루프를 중단시키지 않게 처리한다. 따라서 로그가 없다고 제어가 없었다고 단정할 수 없다. 파일의 지속적인 동일 온도값만으로 센서의 물리적 고착을 확정할 수 없으며 이는 잔여 한계다.
+
+## 9. 빌드·패키징·배포
+
+1. .NET 10 SDK 설치.
+2. `dotnet run --project tests/PocketQuiet.Tests -c Release`.
+3. `scripts/build.ps1` 또는 `scripts/build.sh`.
+4. `python scripts/package.py`로 배포 폴더/ZIP 조립.
+5. 패키징은 앱, 서비스, 문서 HTML/Markdown, 전체 소스와 notices/licenses를 포함한다. 소스 번들은 bin/obj/artifacts/.git/로컬 로그/드라이버 바이너리를 제외한다.
+6. 서명된 공식 PawnIO 2.2.0 설치 파일을 수정하지 않고 동봉한다. 설치 직전 Authenticode 검증을 추가로 수행한다.
+7. 배포 ZIP의 SHA-256과 태그를 공개 릴리스에 첨부한다.
+
+CI는 Windows에서 제어 정책 테스트와 두 프로젝트 publish를 수행한다. CI에는 실제 하드웨어가 없으므로 EC 쓰기·온도 측정·열 안정성을 검증하지 못한다. 앱/서비스 자체는 Authenticode 미서명이며 서명된 것으로 표시해서는 안 된다.
+
+## 10. 검증과 완료 기준
+
+정책 테스트는 31개 확인 항목 및 50,000회 무작위 결정으로 출력 범위와 고온 우선 조건을 확인한다. 물리 시험에서는 자동값 0 읽기, 60/45/35% 출력 변화와 RPM, 자동 복귀를 확인했다. Windows 서비스 IPC와 실제 WPF 실행·화면 표시도 시험했다. 서비스 강제 종료와 스레드 일시 정지를 통한 watchdog 회복 결과는 VALIDATION.md에 기록한다.
+
+실제 절전/최대 절전, 장시간 고부하, 충전 중 장시간 사용, 다른 실내 온도, 팬 정지 하드웨어 고장, 다른 BIOS와 다른 모델은 미검증이다. 초기 공개판의 검증 범위를 넘는 보장을 하지 않는다. 향후 버전에서 독립적인 열 시험과 IPC fuzzing, 서비스 수명 주기 테스트를 확대한다.
+
+## 11. 라이선스와 확장
+
+프로젝트는 GPL-2.0-or-later이다. EC 접근의 원 저자와 출처를 보존한다. LibreHardwareMonitor와 의존성은 각각의 라이선스를 유지하며 NOTICE와 라이선스 파일을 동봉한다. 소스와 바이너리를 같이 제공한다.
+
+확장 시 `ControlEngine`의 순수 정책을 유지하고, 새로운 기기는 별도 검증된 backend 및 allowlist 항목으로 추가한다. 모델이나 BIOS 확인을 생략하는 강제 실행 옵션은 제공하지 않는다. GPL 범위와 의존성의 배포 조건은 변경 전에 검토한다.
