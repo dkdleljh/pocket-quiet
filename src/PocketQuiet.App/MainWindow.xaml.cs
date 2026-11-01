@@ -19,7 +19,8 @@ public partial class MainWindow : Window
 {
     readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromSeconds(1) };
     readonly List<double?> history = []; readonly List<(TextBox T, TextBox P)> fields = [];
-    readonly Forms.NotifyIcon tray; readonly bool demo; readonly string[] args; bool polling, quitting, initialized;
+    readonly Forms.NotifyIcon tray;
+    readonly System.Drawing.Icon trayIcon; readonly bool demo; readonly string[] args; bool polling, quitting, initialized;
     Status? latest; readonly SemaphoreSlim requests = new(1, 1);
     readonly string[] labels = ["기기 기본 자동", "AI 자동 · 적응형", "저소음", "균형", "냉각 우선", "사용자 지정"];
     public MainWindow(string[] args)
@@ -28,10 +29,14 @@ public partial class MainWindow : Window
         var area = SystemParameters.WorkArea; MinWidth = Math.Min(850, area.Width - 32); MinHeight = Math.Min(580, area.Height - 32); Width = Math.Min(1050, area.Width - 32); Height = Math.Min(850, area.Height - 32); Left = area.Left + (area.Width - Width) / 2; Top = area.Top + (area.Height - Height) / 2; WindowStartupLocation = WindowStartupLocation.Manual;
         ModeBox.ItemsSource = labels; ModeBox.SelectedIndex = 0;
         foreach (var point in new Settings().Curve) { var stack = new StackPanel(); var t = new TextBox { Text = point.Temperature.ToString(CultureInfo.InvariantCulture) }; var p = new TextBox { Text = point.Output.ToString(CultureInfo.InvariantCulture) }; stack.Children.Add(t); stack.Children.Add(p); CurveFields.Children.Add(stack); fields.Add((t, p)); }
-        tray = new Forms.NotifyIcon { Icon = System.Drawing.SystemIcons.Application, Text = "Pocket Quiet", Visible = true };
+        using (var iconStream = typeof(MainWindow).Assembly.GetManifestResourceStream("PocketQuiet.TrayIcon")
+            ?? throw new InvalidOperationException("Pocket Quiet 아이콘 리소스를 찾을 수 없습니다."))
+        using (var loadedIcon = new System.Drawing.Icon(iconStream, Forms.SystemInformation.SmallIconSize))
+            trayIcon = (System.Drawing.Icon)loadedIcon.Clone();
+        tray = new Forms.NotifyIcon { Icon = trayIcon, Text = "Pocket Quiet", Visible = true };
         var menu = new Forms.ContextMenuStrip(); menu.Items.Add("Pocket Quiet 열기", null, (_, _) => Dispatcher.Invoke(() => { Show(); WindowState = WindowState.Normal; Activate(); }));
         menu.Items.Add("기기 기본 자동으로 복귀", null, async (_, _) => await RestoreAsync()); menu.Items.Add("자동 복귀 후 종료", null, async (_, _) => { if (await RestoreAsync()) { quitting = true; Close(); } }); tray.ContextMenuStrip = menu; tray.DoubleClick += (_, _) => Dispatcher.Invoke(() => { Show(); WindowState = WindowState.Normal; Activate(); });
-        Closing += (_, e) => { if (!quitting) { e.Cancel = true; Hide(); } else { timer.Stop(); tray.Dispose(); } };
+        Closing += (_, e) => { if (!quitting) { e.Cancel = true; Hide(); } else { timer.Stop(); tray.Dispose(); trayIcon.Dispose(); } };
         System.Windows.Application.Current.SessionEnding += (_, _) => { quitting = true; };
         Loaded += async (_, _) => { await Poll(); timer.Tick += async (_, _) => await Poll(); timer.Start(); };
     }

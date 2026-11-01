@@ -1,11 +1,7 @@
-Pocket Quiet 0.1.0 — hardware-tested preview for GPD Pocket 4
+Pocket Quiet 0.1.1 — consistent app and system tray icons
 
-Windows x64 self-contained desktop application with AI-labelled local adaptive mode, Quiet/Balanced/Cooling/Custom presets, temperature/RPM monitoring, a separate Windows service, thermal safeguards, and a heartbeat watchdog.
+Original mint-green fan badge applied to the executable, window title bar, taskbar, desktop shortcut, sidebar, and notification-area tray. Includes 16/20/24/32/40/48/64/96/128/256px icon frames and the source artwork.
 
-Download the ZIP, extract it completely, and run Install.cmd. The package includes Korean HTML/Markdown manuals, developer specifications, exact source, licenses, and the unmodified official signed PawnIO 2.2.0 installer. Verify the ZIP with SHA256SUMS.txt.
+The controller service and control algorithms remain unchanged at 0.1.0. Windows x64, GPD Pocket 4 BIOS 2.11 compatibility and the previous hardware-tested preview limitations still apply.
 
-Manual control is restricted to GPD Pocket 4 G1628-04 / G1628-04-L with BIOS 2.11. Physical tests were on G1628-04 / Ryzen AI 9 HX 370 only. Other systems are monitoring-only. AI mode is deterministic local adaptive control, not a machine-learning model or cloud service.
-
-Validated: 31 automated assertions, 50,000 randomized decisions, physical output/RPM changes and firmware restore, service IPC, GUI, forced process termination and hung-process recovery. Long-duration thermal qualification and actual suspend/resume remain untested. This is an early release, not universal or safety-certified fan control.
-
-The app/service executables are unsigned; the PawnIO installer is signed by its publisher. Keep Windows security enabled. The service starts in firmware mode after restart.
+Download and extract the ZIP, then run Install.cmd. Existing users may close the UI and replace the app files and shortcut icon without restarting the fan service. The package includes source, Korean manuals, and the official signed PawnIO installer. App binaries remain unsigned. See README and VALIDATION.md for the full test scope.

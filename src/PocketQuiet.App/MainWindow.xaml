@@ -1,4 +1,4 @@
-<Window x:Class="PocketQuiet.App.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:PocketQuiet.App" Title="Pocket Quiet — 조용함을 자동으로" Width="1050" Height="850" MinWidth="850" MinHeight="680" Background="#10191E" Foreground="#EAF2EF" FontFamily="Malgun Gothic" WindowStartupLocation="CenterScreen">
+<Window x:Class="PocketQuiet.App.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:local="clr-namespace:PocketQuiet.App" Icon="Assets/PocketQuiet.ico" Title="Pocket Quiet — 조용함을 자동으로" Width="1050" Height="850" MinWidth="850" MinHeight="680" Background="#10191E" Foreground="#EAF2EF" FontFamily="Malgun Gothic" WindowStartupLocation="CenterScreen">
 <Window.Resources>
  <SolidColorBrush x:Key="Muted" Color="#9BB0AE"/>
  <Style TargetType="Button"><Setter Property="Background" Value="#23363B"/><Setter Property="Foreground" Value="#EAF2EF"/><Setter Property="Padding" Value="16,11"/><Setter Property="Margin" Value="0,0,8,0"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Cursor" Value="Hand"/></Style>
@@ -9,10 +9,10 @@
 <Grid Margin="28">
  <Grid.ColumnDefinitions><ColumnDefinition Width="180"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
  <DockPanel Margin="0,0,24,0">
-  <StackPanel DockPanel.Dock="Top"><TextBlock Text="◌" FontSize="52" Foreground="#8EE3B0"/><TextBlock Text="Pocket" FontSize="27" FontWeight="Bold"/><TextBlock Text="Quiet" FontSize="27" FontWeight="Bold" Foreground="#8EE3B0"/><TextBlock Text="조용함을 자동으로" Margin="0,12,0,36" Foreground="{StaticResource Muted}"/>
+  <StackPanel DockPanel.Dock="Top"><Image Source="Assets/PocketQuiet.png" Width="56" Height="56" HorizontalAlignment="Left" Margin="0,0,0,12" RenderOptions.BitmapScalingMode="HighQuality" AutomationProperties.Name="Pocket Quiet 팬 아이콘"/><TextBlock Text="Pocket" FontSize="27" FontWeight="Bold"/><TextBlock Text="Quiet" FontSize="27" FontWeight="Bold" Foreground="#8EE3B0"/><TextBlock Text="조용함을 자동으로" Margin="0,12,0,36" Foreground="{StaticResource Muted}"/>
    <TextBlock Text="●  팬 컨트롤" Foreground="#8EE3B0" FontWeight="Bold"/><TextBlock Text="로컬 적응형 제어" Margin="16,10,0,0" Foreground="{StaticResource Muted}"/>
   </StackPanel>
-  <StackPanel DockPanel.Dock="Bottom" VerticalAlignment="Bottom"><Button Content="사용설명서 ↗" Click="OpenManual" Margin="0,0,0,10"/><Button Content="진단 기록 ↗" Click="OpenLogs" Margin="0,0,0,18"/><TextBlock Text="v0.1.0 · Windows x64" FontSize="11" Foreground="{StaticResource Muted}"/><TextBlock Text="인터넷 연결 없이 동작" Margin="0,8,0,0" FontSize="11" Foreground="{StaticResource Muted}"/></StackPanel>
+  <StackPanel DockPanel.Dock="Bottom" VerticalAlignment="Bottom"><Button Content="사용설명서 ↗" Click="OpenManual" Margin="0,0,0,10"/><Button Content="진단 기록 ↗" Click="OpenLogs" Margin="0,0,0,18"/><TextBlock Text="v0.1.1 · Windows x64" FontSize="11" Foreground="{StaticResource Muted}"/><TextBlock Text="인터넷 연결 없이 동작" Margin="0,8,0,0" FontSize="11" Foreground="{StaticResource Muted}"/></StackPanel>
  </DockPanel>
  <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto"><StackPanel>
   <Grid Margin="0,0,0,22"><StackPanel><TextBlock Text="내 컴퓨터의 편안한 속도" FontSize="25" FontWeight="Bold"/><TextBlock x:Name="DeviceLabel" Text="서비스에 연결하는 중…" Foreground="{StaticResource Muted}" Margin="0,9,0,0"/></StackPanel><Border HorizontalAlignment="Right" VerticalAlignment="Top" Background="#284339" CornerRadius="12" Padding="12,6"><TextBlock x:Name="ConnectionLabel" Text="연결 중" Foreground="#9DE6B7" FontSize="12"/></Border></Grid>

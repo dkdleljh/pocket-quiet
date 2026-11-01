@@ -1,6 +1,6 @@
 # Pocket Quiet 개발명세서
 
-버전 0.1.0 / 초기 공개판 / Windows x64
+버전 0.1.1 / 초기 공개판 / Windows x64
 
 ## 1. 범위와 설계 원칙
 
@@ -133,3 +133,9 @@ CI는 Windows에서 제어 정책 테스트와 두 프로젝트 publish를 수�
 프로젝트는 GPL-2.0-or-later이다. EC 접근의 원 저자와 출처를 보존한다. LibreHardwareMonitor와 의존성은 각각의 라이선스를 유지하며 NOTICE와 라이선스 파일을 동봉한다. 소스와 바이너리를 같이 제공한다.
 
 확장 시 `ControlEngine`의 순수 정책을 유지하고, 새로운 기기는 별도 검증된 backend 및 allowlist 항목으로 추가한다. 모델이나 BIOS 확인을 생략하는 강제 실행 옵션은 제공하지 않는다. GPL 범위와 의존성의 배포 조건은 변경 전에 검토한다.
+
+## 12. 앱 아이콘 (0.1.1)
+
+원본은 `src/PocketQuiet.App/Assets/PocketQuiet.png`이며 내장 이미지 생성 도구로 제작했다. `scripts/Build-Icons.ps1`은 원본 투명도를 유지하며 16/20/24/32/40/48/64/96/128/256px PNG 프레임을 담은 ICO를 생성한다. 이미 생성된 ICO를 저장소에 포함하므로 일반 빌드에서 이미지 도구가 필요하지 않다.
+
+동일한 ICO를 EXE의 ApplicationIcon, WPF Window.Icon, NotifyIcon, 설치 바로가기 IconLocation에 적용한다. NotifyIcon은 시스템 SmallIconSize에 맞는 프레임을 로드하고 독립 Icon 복사본을 유지한다. 트레이 해제 뒤 복사본을 Dispose한다. 사이드바에는 PNG 원본을 사용한다. 창 닫기로 트레이에 숨긴 동안에는 아이콘을 유지한다. 0.1.1은 UI/아이콘 업데이트이며 제어 서비스·IPC 버전은 0.1.0을 유지한다.

@@ -39,6 +39,7 @@ $shell = New-Object -ComObject WScript.Shell
 $shortcut = $shell.CreateShortcut((Join-Path ([Environment]::GetFolderPath('Desktop')) 'Pocket Quiet.lnk'))
 $shortcut.TargetPath = Join-Path $package 'PocketQuiet.exe'
 $shortcut.WorkingDirectory = $package
+$shortcut.IconLocation = (Join-Path $package 'Assets\PocketQuiet.ico') + ',0'
 $shortcut.Description = 'Pocket Quiet - adaptive thermal fan control'
 $shortcut.Save()
 Write-Host 'Pocket Quiet installed. Open the desktop shortcut and select a preset.'

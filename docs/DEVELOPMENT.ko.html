@@ -1,5 +1,5 @@
 <!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DEVELOPMENT.ko — Pocket Quiet</title><style>body{font:16px/1.8 "Segoe UI","Malgun Gothic",sans-serif;color:#203633;background:#f4f8f5;margin:auto;max-width:1000px;padding:40px}h1,h2,h3{line-height:1.4;color:#133e32}h2{margin-top:44px;border-bottom:1px solid #cadad2;padding-bottom:12px}table{border-collapse:collapse;width:100%;background:white}td,th{border:1px solid #cadad2;padding:10px;text-align:left}pre{background:#182c29;color:#e6f4ea;padding:18px;overflow:auto;border-radius:10px}code{font-family:Consolas,monospace}a{color:#137656}img{max-width:100%}blockquote{border-left:4px solid #4b9b75;padding-left:20px} @media print{body{padding:0;font-size:11pt}pre{white-space:pre-wrap}h2{break-after:avoid}table{break-inside:avoid}}</style><body><h1 id="pocket-quiet">Pocket Quiet 개발명세서</h1>
-<p>버전 0.1.0 / 초기 공개판 / Windows x64</p>
+<p>버전 0.1.1 / 초기 공개판 / Windows x64</p>
 <h2 id="1">1. 범위와 설계 원칙</h2>
 <p>대상은 GPD Pocket 4 한 계열이며 일반적인 데스크톱·노트북 팬 제어 제품이 아니다. 기기별 EC 접근을 명시적으로 제한하고, 제어 엔진을 하드웨어에서 분리해 정책 검증이 가능하도록 한다. UI·서비스·감시 프로세스를 분리하며, 네트워크나 AI 서비스에 의존하지 않는다.</p>
 <p>초기 기획의 일반 권한 UI 대신 첫 배포판은 <strong>관리자 권한 UI + 관리자 전용 IPC</strong>를 사용한다. 권한 없는 프로세스가 팬 설정을 변경할 수 있는 표면을 줄이는 선택이다. 세밀한 사용자별 권한 위임과 관리자 권한이 필요 없는 UI는 후속 개선 항목이다.</p>
@@ -94,4 +94,7 @@ third-party/              로컬 패키징 시 공식 드라이버 설치 파일
 <p>실제 절전/최대 절전, 장시간 고부하, 충전 중 장시간 사용, 다른 실내 온도, 팬 정지 하드웨어 고장, 다른 BIOS와 다른 모델은 미검증이다. 초기 공개판의 검증 범위를 넘는 보장을 하지 않는다. 향후 버전에서 독립적인 열 시험과 IPC fuzzing, 서비스 수명 주기 테스트를 확대한다.</p>
 <h2 id="11">11. 라이선스와 확장</h2>
 <p>프로젝트는 GPL-2.0-or-later이다. EC 접근의 원 저자와 출처를 보존한다. LibreHardwareMonitor와 의존성은 각각의 라이선스를 유지하며 NOTICE와 라이선스 파일을 동봉한다. 소스와 바이너리를 같이 제공한다.</p>
-<p>확장 시 <code>ControlEngine</code>의 순수 정책을 유지하고, 새로운 기기는 별도 검증된 backend 및 allowlist 항목으로 추가한다. 모델이나 BIOS 확인을 생략하는 강제 실행 옵션은 제공하지 않는다. GPL 범위와 의존성의 배포 조건은 변경 전에 검토한다.</p></body></html>
+<p>확장 시 <code>ControlEngine</code>의 순수 정책을 유지하고, 새로운 기기는 별도 검증된 backend 및 allowlist 항목으로 추가한다. 모델이나 BIOS 확인을 생략하는 강제 실행 옵션은 제공하지 않는다. GPL 범위와 의존성의 배포 조건은 변경 전에 검토한다.</p>
+<h2 id="12-011">12. 앱 아이콘 (0.1.1)</h2>
+<p>원본은 <code>src/PocketQuiet.App/Assets/PocketQuiet.png</code>이며 내장 이미지 생성 도구로 제작했다. <code>scripts/Build-Icons.ps1</code>은 원본 투명도를 유지하며 16/20/24/32/40/48/64/96/128/256px PNG 프레임을 담은 ICO를 생성한다. 이미 생성된 ICO를 저장소에 포함하므로 일반 빌드에서 이미지 도구가 필요하지 않다.</p>
+<p>동일한 ICO를 EXE의 ApplicationIcon, WPF Window.Icon, NotifyIcon, 설치 바로가기 IconLocation에 적용한다. NotifyIcon은 시스템 SmallIconSize에 맞는 프레임을 로드하고 독립 Icon 복사본을 유지한다. 트레이 해제 뒤 복사본을 Dispose한다. 사이드바에는 PNG 원본을 사용한다. 창 닫기로 트레이에 숨긴 동안에는 아이콘을 유지한다. 0.1.1은 UI/아이콘 업데이트이며 제어 서비스·IPC 버전은 0.1.0을 유지한다.</p></body></html>

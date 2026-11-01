@@ -4,13 +4,13 @@
 
 Pocket Quiet combines a Korean Windows desktop interface, a dedicated control service, and a recovery watchdog. It offers adaptive, quiet, balanced, cooling-first, and custom-curve presets, with a one-click return to firmware control.
 
-> **Version 0.1.0 — hardware-tested preview.** Manual control is restricted to GPD Pocket 4 (`G1628-04` / `G1628-04-L`) with BIOS `2.11`. Physical validation was performed on **G1628-04 / Ryzen AI 9 HX 370** only; the `-L` variant is protocol-matched but not physically tested. Other models and BIOS versions are monitoring-only. This is not a universal laptop fan controller.
+> **Version 0.1.1 — hardware-tested preview.** Manual control is restricted to GPD Pocket 4 (`G1628-04` / `G1628-04-L`) with BIOS `2.11`. Physical validation was performed on **G1628-04 / Ryzen AI 9 HX 370** only; the `-L` variant is protocol-matched but not physically tested. Other models and BIOS versions are monitoring-only. This is not a universal laptop fan controller.
 
 ![Pocket Quiet interface](docs/screenshot.png)
 
 ## 다운로드 / 설치
 
-1. [Releases](../../releases)에서 `PocketQuiet-0.1.0-win-x64.zip`을 다운로드하고 압축을 모두 풉니다.
+1. [Releases](../../releases)에서 `PocketQuiet-0.1.1-win-x64.zip`을 다운로드하고 압축을 모두 풉니다.
 2. `Install.cmd`를 실행합니다. 관리자 권한 요청을 승인하면 서명이 검증된 PawnIO와 Pocket Quiet 서비스가 설치됩니다.
 3. 바탕화면의 **Pocket Quiet** 바로가기를 실행합니다.
 4. 기기·온도·RPM이 표시되고 연결 상태가 정상인지 확인합니다.

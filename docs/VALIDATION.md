@@ -42,3 +42,12 @@ Temperatures during this short exercise ranged approximately 48–61°C. These a
 - All Windows Defender / enterprise application-control configurations.
 
 Firmware safety mechanisms remain enabled. Manual mode starts only on user request after restart. See the user guide for recovery steps and the specification for remaining limitations.
+
+## Icon update — 0.1.1
+
+- Generated an original transparent mint fan badge with the built-in image generator.
+- Validated all ten ICO directory entries against their embedded 32-bit RGBA PNG dimensions (16 through 256 pixels).
+- Published the Windows application successfully and extracted its new executable icon.
+- Visually verified the live WPF sidebar, taskbar icon, and actual Windows notification-area icon.
+- Updated the desktop shortcut to the explicit ICO path and refreshed the Windows shell icon cache.
+- Confirmed the fan-control service PID stayed unchanged during UI replacement. No fan-control algorithm changed.
