@@ -192,6 +192,12 @@
           "System.CodeDom": "10.0.2"
         }
       },
+      "pocketquiet.control": {
+        "type": "Project",
+        "dependencies": {
+          "PocketQuiet.Core": "[0.2.0, )"
+        }
+      },
       "pocketquiet.core": {
         "type": "Project"
       }

@@ -1,0 +1,91 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Validation — Pocket Quiet</title><style>body{font:16px/1.8 "Segoe UI","Malgun Gothic",sans-serif;color:#203633;background:#f4f8f5;margin:auto;max-width:1000px;padding:40px}h1,h2,h3{line-height:1.4;color:#133e32}h2{margin-top:44px;border-bottom:1px solid #cadad2;padding-bottom:12px}table{border-collapse:collapse;width:100%;background:white}td,th{border:1px solid #cadad2;padding:10px;text-align:left}pre{background:#182c29;color:#e6f4ea;padding:18px;overflow:auto;border-radius:10px}code{font-family:Consolas,monospace}a{color:#137656}img{max-width:100%}blockquote{border-left:4px solid #4b9b75;padding-left:20px} @media print{body{padding:0;font-size:11pt}pre{white-space:pre-wrap}h2{break-after:avoid}table{break-inside:avoid}}</style><body><h1>Validation report — 0.2.0</h1>
+<p>Date: 2026-11-03 (Asia/Seoul). This section records this update; historical 0.1.x results follow separately.</p>
+<h2>Automated and build verification</h2>
+<ul>
+<li>94 checks passed on Linux and again in a self-contained Windows test executable, including 60,000 randomized decisions across all six manual modes.</li>
+<li>Regression coverage: hot/cold preset reapply, cold manual entry without a 60% burst, stopped-fan startup, true minimum-output convergence, immediate thermal floors, retained stall counters, missing/stale/repeated sensor data, failed manual saves, firmware save failures, failed EC restoration, watchdog loss/recovery, suspend/resume with replacement hardware, unknown BIOS denial, immutable snapshots, atomic settings persistence, strict JSON/line limits, real duplex-pipe framing and cancellation, and isolated demo actions.</li>
+<li>App and service win-x64 self-contained publishes succeeded with locked dependency restores. App/service Core binaries have identical SHA-256 hashes.</li>
+<li>PowerShell scripts parsed successfully. The full deployment manifest was checked both by Python and by Windows PowerShell, including Korean document filenames.</li>
+<li>WPF demo executed on Windows. UI Automation verified adding a sixth curve point, invalid input disabling Apply, valid input enabling Apply, apply and demo reset. Screenshots were inspected. Firmware restore controls stay visible below the scrollable content.</li>
+</ul>
+<h2>Physical Windows integration</h2>
+<ul>
+<li>Upgraded the installed service through the staged installer; previous files were retained. The new service reported version 0.2.0, Ready=true, WatchdogHealthy=true and verified Firmware state.</li>
+<li>An invalid 0% custom curve was rejected through real IPC.</li>
+<li>Silent was briefly applied on the allowlisted G1628-04 / BIOS 2.11, using verified EC writes, then firmware restoration was explicitly confirmed.</li>
+<li>Terminated only the watchdog child while the service was in firmware mode. The service detected observer loss and launched a replacement; readiness and watchdog health recovered while retaining firmware mode.</li>
+<li>These were short functional checks. No acoustic dB reduction or thermal stability certification is claimed.</li>
+</ul>
+<h2>Remaining physical validation</h2>
+<p>Long-duration CPU/GPU load, actual sleep/hibernate cycles, thermal behavior across room temperatures and charging states, acoustic noise measurements, failed physical fan hardware, other BIOS versions, and the G1628-04-L variant remain unqualified. Simulated suspend/resume and storage failures do not substitute for those physical tests. Installer rollback is implemented and reviewed, but an intentionally failed physical installation was not injected in this session.</p>
+<hr />
+<h1>Validation report — 0.1.0</h1>
+<p>Test date: 2026-11-01. Test device: GPD G1628-04, AMD Ryzen AI 9 HX 370, BIOS 2.11, Windows 11 Home x64 build 26300. These results apply to this device only.</p>
+<h2>Automated policy tests</h2>
+<p>31 assertions passed, including 50,000 randomized decisions across five manual presets. Verified invalid/missing temperatures, invalid RPM, stale/future/repeated timestamps, persistent fan stall, emergency override, output bounds, delayed deceleration, interpolation, configuration rejection, and relative preset behavior.</p>
+<h2>Physical fan test</h2>
+<p>Test sequence used three output levels, six samples at each level, then an unconditional firmware restore. Outputs were read back from the EC after each write. RPM was read using high/low EC registers, consistent with the upstream Linux driver.</p>
+<table>
+<thead>
+<tr>
+<th>Requested output</th>
+<th style="text-align: right;">Representative stabilized RPM</th>
+<th style="text-align: right;">EC raw value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>60%</td>
+<td style="text-align: right;">4,728–4,739</td>
+<td style="text-align: right;">147</td>
+</tr>
+<tr>
+<td>45%</td>
+<td style="text-align: right;">3,756–3,776</td>
+<td style="text-align: right;">110</td>
+</tr>
+<tr>
+<td>35%</td>
+<td style="text-align: right;">3,075–3,080</td>
+<td style="text-align: right;">86</td>
+</tr>
+<tr>
+<td>Firmware automatic</td>
+<td style="text-align: right;">Dynamic firmware policy</td>
+<td style="text-align: right;">0 (verified)</td>
+</tr>
+</tbody>
+</table>
+<p>Temperatures during this short exercise ranged approximately 48–61°C. These are functional observations, not an acoustic measurement or thermal stability certification. No dB measurement was made.</p>
+<h2>Windows integration</h2>
+<ul>
+<li>Official PawnIO installer 2.2.0 Authenticode signature: valid; signer namazso.eu. Driver running.</li>
+<li>Self-contained Windows service and WPF builds: succeeded.</li>
+<li>Real sensor values in the service and UI: verified.</li>
+<li>Adaptive preset applied through the pipe and produced a hardware output.</li>
+<li>Unsafe custom output (0%) rejected.</li>
+<li>Reset returned the active mode to Firmware.</li>
+<li>WPF screenshot captured and inspected; temperature history rendering checked.</li>
+<li>Service forcibly killed during control: SCM restarted it; new process ready in Firmware mode.</li>
+<li>Service process deliberately suspended: heartbeat watchdog terminated it and SCM restarted it.</li>
+<li>Normal service stop followed by independent probe: EC control register 0.</li>
+<li>Install/update and recovery paths exercised on the test computer.</li>
+</ul>
+<h2>Explicitly not certified / not exhaustively tested</h2>
+<ul>
+<li>Long-duration CPU/GPU stress, acoustic noise reduction, battery runtime, and performance impact.</li>
+<li>Actual sleep, hibernate, and resume cycles (handlers implemented, not physically exercised).</li>
+<li>Other BIOS versions, other Windows builds, and the G1628-04-L hardware variant.</li>
+<li>Windows/kernel crash, broken driver calls, failed fan hardware, or simultaneous arbitrary third-party EC writers.</li>
+<li>All Windows Defender / enterprise application-control configurations.</li>
+</ul>
+<p>Firmware safety mechanisms remain enabled. Manual mode starts only on user request after restart. See the user guide for recovery steps and the specification for remaining limitations.</p>
+<h2>Icon update — 0.1.1</h2>
+<ul>
+<li>Generated an original transparent mint fan badge with the built-in image generator.</li>
+<li>Validated all ten ICO directory entries against their embedded 32-bit RGBA PNG dimensions (16 through 256 pixels).</li>
+<li>Published the Windows application successfully and extracted its new executable icon.</li>
+<li>Visually verified the live WPF sidebar, taskbar icon, and actual Windows notification-area icon.</li>
+<li>Updated the desktop shortcut to the explicit ICO path and refreshed the Windows shell icon cache.</li>
+<li>Confirmed the fan-control service PID stayed unchanged during UI replacement. No fan-control algorithm changed.</li>
+</ul></body></html>

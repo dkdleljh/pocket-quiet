@@ -7,3 +7,6 @@ third-party/*.exe
 *.csv
 *.zip
 .vs/
+__pycache__/
+*.pyc
+.venv/

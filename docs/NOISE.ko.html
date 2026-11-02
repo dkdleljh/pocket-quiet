@@ -1,0 +1,28 @@
+<!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NOISE.ko — Pocket Quiet</title><style>body{font:16px/1.8 "Segoe UI","Malgun Gothic",sans-serif;color:#203633;background:#f4f8f5;margin:auto;max-width:1000px;padding:40px}h1,h2,h3{line-height:1.4;color:#133e32}h2{margin-top:44px;border-bottom:1px solid #cadad2;padding-bottom:12px}table{border-collapse:collapse;width:100%;background:white}td,th{border:1px solid #cadad2;padding:10px;text-align:left}pre{background:#182c29;color:#e6f4ea;padding:18px;overflow:auto;border-radius:10px}code{font-family:Consolas,monospace}a{color:#137656}img{max-width:100%}blockquote{border-left:4px solid #4b9b75;padding-left:20px} @media print{body{padding:0;font-size:11pt}pre{white-space:pre-wrap}h2{break-after:avoid}table{break-inside:avoid}}</style><body><h1 id="pocket-quiet">Pocket Quiet — 큰 팬 바람 소리를 줄이는 방법</h1>
+<p>버전 0.2.0 · 소음계 측정 결과나 무소음 보증이 아닌 사용 안내입니다.</p>
+<h2 id="_1">먼저 온도와 출력 확인</h2>
+<p>온도가 80°C 이상이면 출력은 최소 90%, 85°C 이상이면 100%가 됩니다. 무소음 프리셋도 이 보호 조건을 따릅니다. 이때 큰 바람 소리는 제어기가 냉각을 요구하기 때문입니다. 회전수를 무조건 낮추면 열이 더 쌓일 수 있으므로 발열 원인도 함께 줄여야 합니다.</p>
+<p>CPU 사용률이 낮아도 패키지 전력이 높을 수 있습니다. CPU/GPU 온도와 패키지 전력, 작업 부하를 함께 확인하세요. RPM은 회전수이며 소음 크기(dB)가 아닙니다. 같은 RPM도 기기·거리·책상·흡배기 조건에 따라 다르게 들립니다.</p>
+<h2 id="_2">이 업데이트에서 바뀐 것</h2>
+<ul>
+<li><strong>무소음 · 최소 소음</strong> 프리셋: 40°C/30%, 55°C/30%, 65°C/38%, 75°C/65%, 85°C/100% 곡선입니다. 실제 출력에는 평균과 감속 대기가 적용됩니다.</li>
+<li>저온에서 처음 수동 전환할 때도 최근 온도 55°C 이하와 실제 팬 회전이 확인되면 곡선 출력으로 시작해 60%로 잠깐 올라가는 현상을 줄입니다.</li>
+<li>같은 프리셋을 다시 적용할 때 출력·온도 평균·감속 대기를 초기화하지 않습니다. 저온에서 불필요하게 60%로 올라가거나 고온에서 갑자기 내려가는 현상을 방지합니다.</li>
+<li>감속이 시작되면 목표 출력까지 내려갑니다. 기존처럼 목표보다 약 3% 높은 지점에서 멈추는 현상을 보완했습니다.</li>
+<li>화면에 고온 보호가 팬 출력을 높이고 있는지 표시합니다. 전력 효율 설정을 바로 열 수 있습니다.</li>
+</ul>
+<p>최소 출력은 기존과 같은 30%입니다. 팬 정지와 0dB를 보장하지 않습니다. 새로운 프리셋의 장시간 열 안정성과 실제 소음 감소량은 별도 실물 시험이 필요합니다.</p>
+<h2 id="_3">지속적인 큰 바람 소리 대응 순서</h2>
+<ol>
+<li>앱에서 현재 적용 모드, 온도, 전력을 확인합니다. 선택한 프리셋과 실제 적용 상태를 구별하세요.</li>
+<li><strong>전력 효율 설정</strong>을 눌러 Windows 설정 &gt; 시스템 &gt; 전원 및 배터리로 이동합니다. 사용 목적에 맞으면 전원 모드를 <strong>최고 전력 효율</strong>로 바꿔 비교합니다. 전원 연결/배터리 항목이 따로 있으면 각각 확인합니다. 성능과 반응 속도가 줄어들 수 있습니다. 앱은 Windows 전원 설정을 자동 변경하지 않습니다.</li>
+<li>작업 관리자에서 지속적으로 CPU/GPU를 사용하는 작업과 불필요한 백그라운드 작업을 확인합니다. 앱은 사용자의 작업을 임의 종료하지 않습니다.</li>
+<li>흡배기구를 가리지 않는 단단한 평면에서 비교합니다. 이불·쿠션 위에서는 열이 쌓일 수 있습니다.</li>
+<li>가벼운 작업에서 온도가 내려간 뒤 무소음 프리셋을 적용합니다. 최소 20초 감속 대기 후 천천히 내려가므로 즉시 조용해지지는 않습니다.</li>
+<li>비교할 때 작업·충전 상태·실내 온도·기기 위치를 유지하고 CSV의 온도·RPM·출력을 확인합니다. 지속 고온에서는 조용함보다 냉각을 우선합니다.</li>
+</ol>
+<p>Windows 전원 모드 선택 경로와 성능/효율의 차이는 <a href="https://support.microsoft.com/en-us/windows/experience/change-the-power-mode-for-your-windows-pc">Microsoft 공식 안내</a>를 참고하세요. 전력 절감으로 발열과 팬 부담을 줄이려는 접근이며, 특정 기기에서의 감소량은 측정해야 합니다.</p>
+<h2 id="_4">노이즈 캔슬링 검토</h2>
+<p>공기 중 팬 소음을 능동 상쇄하려면 마이크와 스피커뿐 아니라 상쇄할 위치, 스피커에서 마이크까지의 전달 경로, 지연을 반영한 적응 필터가 필요합니다. <a href="https://www.mathworks.com/help/audio/ug/active-noise-control-using-a-filtered-x-lms-fir-adaptive-filter.html">MathWorks의 능동 소음 제어 설명</a>도 측정 센서, 출력 장치와 2차 전달 경로 모델을 전제로 합니다.</p>
+<p>이 조건을 고려하면 일반 노트북 스피커로 역위상 소리를 재생하는 것만으로 주변 공간 전체의 팬 바람 소리를 안정적으로 지우기는 어렵다고 판단했습니다. 이번 버전은 소리를 추가 재생하는 ANC 기능을 구현하지 않습니다. 마이크 소음 제거는 녹음·통화 신호의 소음을 줄이는 기능으로, 사용자가 직접 듣는 팬 소음을 없애지 않습니다.</p>
+<p>팬 소음의 원인을 줄이는 데는 저온 팬 출력 개선과 소비전력·흡배기 관리가 우선입니다. 사용자 귀에서 들리는 소리를 줄이는 별도 방법으로 ANC 헤드폰이 있지만, 이는 기기의 실제 팬 소음이나 발열을 줄이지는 않습니다. <a href="https://helpguide.sony.net/mdr/wh1000xm4/v1/en/contents/TP0002752738.html">Sony의 ANC 설명</a>은 내장 마이크와 상쇄 신호, 주로 저주파 소음에서의 효과를 설명합니다.</p></body></html>

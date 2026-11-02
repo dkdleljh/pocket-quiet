@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/PocketQuiet.App/PocketQuiet.App.csproj" />
     <Project Path="src/PocketQuiet.Core/PocketQuiet.Core.csproj" />
+    <Project Path="src/PocketQuiet.Control/PocketQuiet.Control.csproj" />
     <Project Path="src/PocketQuiet.Service/PocketQuiet.Service.csproj" />
   </Folder>
   <Folder Name="/tests/">

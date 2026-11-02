@@ -2,9 +2,16 @@
   "version": 1,
   "dependencies": {
     "net10.0": {
+      "pocketquiet.control": {
+        "type": "Project",
+        "dependencies": {
+          "PocketQuiet.Core": "[0.2.0, )"
+        }
+      },
       "pocketquiet.core": {
         "type": "Project"
       }
-    }
+    },
+    "net10.0/win-x64": {}
   }
 }

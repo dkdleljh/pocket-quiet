@@ -1,14 +1,21 @@
 #Requires -RunAsAdministrator
 $ErrorActionPreference = 'Stop'
-$service=Get-Service PocketQuiet -ErrorAction SilentlyContinue
-if ($service) { Stop-Service PocketQuiet; $service.WaitForStatus('Stopped',[TimeSpan]::FromSeconds(15)); & sc.exe delete PocketQuiet; Start-Sleep -Seconds 3 }
-$target=Join-Path $env:ProgramFiles 'Pocket Quiet'
-for($attempt=0;$attempt -lt 15;$attempt++) {
- $remaining=@(Get-CimInstance Win32_Process | Where-Object { $_.ExecutablePath -eq (Join-Path $target 'PocketQuiet.Service.exe') })
- if($remaining.Count -eq 0){break};Start-Sleep -Seconds 1
+. (Join-Path $PSScriptRoot 'ServiceTools.ps1')
+$target = Join-Path $env:ProgramFiles 'Pocket Quiet'
+$exe = Join-Path $target 'PocketQuiet.Service.exe'
+$service = Get-Service PocketQuiet -ErrorAction SilentlyContinue
+if ($service) { Stop-Service PocketQuiet; $service.WaitForStatus('Stopped',[TimeSpan]::FromSeconds(15)) }
+Wait-PocketProcesses $exe
+$recovery = Join-Path (Split-Path $PSScriptRoot -Parent) 'service\PocketQuiet.Service.exe'
+if (Test-Path $recovery) {
+ & $recovery --restore-if-supported
+ if ($LASTEXITCODE -ne 0) { throw 'Recovery failed. Service files were retained.' }
+} elseif (Test-Path $exe) { throw 'Packaged recovery tool is missing. Service files were retained.' }
+if ($service) {
+ & sc.exe delete PocketQuiet | Out-Null
+ if ($LASTEXITCODE -ne 0) { throw 'Service deletion failed.' }
 }
-if($remaining.Count -gt 0){throw 'Service/watchdog has not exited; files were retained.'}
 if (Test-Path $target) { Remove-Item $target -Recurse -Force }
-$link=Join-Path ([Environment]::GetFolderPath('Desktop')) 'Pocket Quiet.lnk'
-if(Test-Path $link){Remove-Item $link}
-Write-Host 'Service removed. Local logs and the desktop package are retained. PawnIO is shared and remains installed.'
+$link = Join-Path ([Environment]::GetFolderPath('Desktop')) 'Pocket Quiet.lnk'
+if (Test-Path $link) { Remove-Item $link }
+Write-Host 'Service removed. Logs, rollback copies, desktop package and shared PawnIO remain installed.'

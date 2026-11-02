@@ -1,1 +1,16 @@
-<Project><PropertyGroup><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><LangVersion>latest</LangVersion><Version>0.1.0</Version><Authors>Pocket Quiet contributors</Authors><RepositoryUrl>https://github.com/dkdleljh/pocket-quiet</RepositoryUrl><EnableWindowsTargeting>true</EnableWindowsTargeting><RestorePackagesWithLockFile>true</RestorePackagesWithLockFile></PropertyGroup></Project>
+<Project>
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <Version>0.2.0</Version>
+    <Authors>Pocket Quiet contributors</Authors>
+    <RepositoryUrl>https://github.com/dkdleljh/pocket-quiet</RepositoryUrl>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <Deterministic>true</Deterministic>
+    <!-- Exact source revision is recorded in the package manifest, including dirty builds. -->
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+  </PropertyGroup>
+</Project>

@@ -2,49 +2,45 @@
 
 **Local, temperature-aware fan control for GPD Pocket 4 on Windows.**
 
-Pocket Quiet combines a Korean Windows desktop interface, a dedicated control service, and a recovery watchdog. It offers adaptive, quiet, balanced, cooling-first, and custom-curve presets, with a one-click return to firmware control.
+Pocket Quiet combines a Korean desktop interface, a dedicated control service and an independent recovery watchdog. Version **0.2.0** adds a Silent preset, smoother preset changes, verified recovery state, sensor freshness, retained protection history and a testable controller.
 
-> **Version 0.1.1 — hardware-tested preview.** Manual control is restricted to GPD Pocket 4 (`G1628-04` / `G1628-04-L`) with BIOS `2.11`. Physical validation was performed on **G1628-04 / Ryzen AI 9 HX 370** only; the `-L` variant is protocol-matched but not physically tested. Other models and BIOS versions are monitoring-only. This is not a universal laptop fan controller.
+![Pocket Quiet interface — demo values](docs/screenshot.png)
 
-![Pocket Quiet interface](docs/screenshot.png)
+Manual control and EC access are restricted to **GPD G1628-04 / G1628-04-L, BIOS 2.11**. The original physical validation used G1628-04 / Ryzen AI 9 HX 370; the -L variant is protocol-mapped but not physically tested. Other devices/BIOS versions receive CPU/GPU monitoring only, without EC reads or writes. This remains a hardware-specific preview.
 
-## 다운로드 / 설치
+## 설치 / 업데이트
 
-1. [Releases](../../releases)에서 `PocketQuiet-0.1.1-win-x64.zip`을 다운로드하고 압축을 모두 풉니다.
-2. `Install.cmd`를 실행합니다. 관리자 권한 요청을 승인하면 서명이 검증된 PawnIO와 Pocket Quiet 서비스가 설치됩니다.
-3. 바탕화면의 **Pocket Quiet** 바로가기를 실행합니다.
-4. 기기·온도·RPM이 표시되고 연결 상태가 정상인지 확인합니다.
-5. **AI 자동 · 적응형** 또는 **저소음**을 선택한 다음 **프리셋 적용**을 누릅니다.
+1. [Releases](../../releases)에서 전체 ZIP을 받아 압축을 풉니다. 개발 빌드는 [Actions](../../actions)의 검증된 아티팩트를 사용할 수 있습니다.
+2. 기존 팬 제어 도구를 종료하고 `Install.cmd`를 실행합니다.
+3. 설치기는 파일 SHA-256, 필요한 PawnIO 설치 파일 서명, 새 서비스의 준비 상태를 확인합니다. 기존 서비스 폴더를 보존하고 새 설치가 실패하면 복원을 시도합니다.
+4. 바탕화면 바로가기로 앱을 열고 **적용 상태·정상 측정 시각·복구 감시**를 확인합니다.
+5. 사용할 프리셋을 선택하고 **프리셋 적용**을 누릅니다.
 
-앱은 자체 .NET 런타임을 포함합니다. Windows 11 x64에서 시험했습니다. 기존 FanControl, MotionAssistant 등의 팬 제어는 먼저 종료하세요. 처음 실행, 서비스 재시작, 절전 복귀 시에는 기기 기본 자동으로 시작합니다.
+서비스는 Program Files에 별도로 설치됩니다. 배포 폴더의 DLL 교체만으로 설치된 서비스가 갱신되지는 않습니다. 이전 UI를 완전히 종료한 뒤 새 배포 파일을 교체하세요. 부팅·서비스 재시작·절전 복귀 후에는 기기 기본 자동으로 시작하며 수동 프리셋을 자동 복원하지 않습니다.
 
-자세한 안내: [사용설명서](docs/USER_GUIDE.ko.md) · [개발명세서](docs/DEVELOPMENT.ko.md) · [검증 기록](docs/VALIDATION.md) · [변경 이력](CHANGELOG.md)
+설명서: [사용 안내](docs/USER_GUIDE.ko.md) · [소음 줄이기 / ANC 검토](docs/NOISE.ko.md) · [개발 명세](docs/DEVELOPMENT.ko.md) · [검증 기록](docs/VALIDATION.md) · [변경 이력](CHANGELOG.md)
 
-## Features
+## Quiet operation and safeguards
 
-- Real CPU/APU temperature, fan RPM, CPU load, and package power when available.
-- Firmware automatic, Adaptive (AI-labelled), Quiet, Balanced, Cooling, and Custom presets.
-- Temperature trend anticipation, exponential smoothing, delayed deceleration, and bounded outputs.
-- Immediate 100% cooling request at 85°C; this is an application policy, not a manufacturer rating.
-- Sensor validation, persistent-stall detection, write/read-back verification, and firmware fallback.
-- Privileged Windows service separated from the WPF interface; closing the window hides it to the tray.
-- Separate heartbeat watchdog plus Windows Service Control Manager restart recovery.
-- Local bounded logs; no analytics, cloud inference, API keys, accounts, or network access during normal operation.
-- Editable five-point curve, preference slider, live chart, reset, and recovery/uninstall scripts.
+- Firmware, Silent, Quiet, Adaptive, Balanced, Cooling and 2–12-point Custom curves.
+- Silent targets 30% through 55°C, 38% at 65°C, 65% at 75°C and 100% at 85°C. **It does not promise fan stop or 0dB.**
+- Reapplying settings preserves output, smoothing, deceleration and stall detection. Sustained deceleration reaches the target rather than remaining 3% above it.
+- Immediate output floors of 65% at 75°C and 90% at 80°C; immediate 100% at 85°C after sensor validation. These are application policy, not manufacturer ratings.
+- Temperature/RPM/timestamp validation, persistent-stall detection, write/read-back verification and firmware fallback.
+- Hardware restoration and disk persistence have separate outcomes. A failed save cannot resume manual control after firmware restoration.
+- Failed readings are cleared; last sample time and last protection event remain visible. The chart shows real time and gaps.
+- Watchdog startup/liveness monitoring, firmware fallback on observer loss and observer restart attempts.
+- Local bounded asynchronous logs. No accounts, analytics, API keys, microphone recording or anti-noise playback.
 
-**“AI automatic” means deterministic, local adaptive rules.** There is no neural network, language model, online training, persistent learned model, or hidden cloud service. CPU load and power are displayed for diagnosis; temperature and temperature slope drive fan control.
+“AI automatic” is deterministic local temperature-trend compensation, not a neural network or learning system. CPU load and package power are diagnostic readings, not control inputs.
 
-## Safety and limitations
+Sustained high temperature requires cooling even in Silent mode. A Windows power-efficiency shortcut and the noise guide help address heat generation. The app does not automatically change power plans, TDP, CPU boost or voltage. Acoustic improvement and long-duration thermal stability require physical measurement.
 
-Manual outputs are limited to 30–100%; zero-RPM operation is intentionally unavailable. 85°C triggers maximum cooling without smoothing. The UI displays output percentage separately from measured RPM. Lower fan speed may raise temperature; it cannot eliminate heat from sustained workloads or repair a damaged fan.
+The watchdog cannot guarantee recovery from OS/kernel hangs, failed drivers, hardware faults or arbitrary external EC writers. App/service executables are not Authenticode-signed; the independently signed PawnIO installer is verified separately. Deployment hashes detect corruption/mixed files, not publisher identity.
 
-The watchdog can recover from many user-space process failures, but cannot guarantee recovery from an OS/kernel hang, power loss, a failed driver, firmware interference, or hardware faults. No thermal protection is disabled. Long-duration load, real suspend/resume, all Windows updates, and other devices are **not** comprehensively validated. Do not treat a short functional test as a thermal certification.
+## Development
 
-Executable files are not Authenticode-signed. The **PawnIO installer** is independently signed by its publisher and verified by the installation script. Do not disable Windows security to run the software. If security policy blocks a component, keep firmware control and investigate compatibility.
-
-## Build
-
-.NET 10 SDK is required to build. Windows x64 is required to run the service and app. Cross-compilation from Linux is supported.
+The distribution includes a `source` directory. Run build commands **inside that directory**, or at the root of a Git checkout. The SDK baseline is in `global.json` (.NET 10.0.403, latest patch roll-forward).
 
 ```powershell
 ./scripts/build.ps1
@@ -54,20 +50,21 @@ Executable files are not Authenticode-signed. The **PawnIO installer** is indepe
 ./scripts/build.sh
 ```
 
-The core test executable is dependency-light and cross-platform:
+These run the portable policy/state tests and publish self-contained Windows app/service outputs. Locked NuGet restores prevent unnoticed dependency changes. Windows x64 is required for live service and WPF execution; cross-compilation is supported.
 
 ```bash
 dotnet run --project tests/PocketQuiet.Tests -c Release
+python -m pip install -r scripts/requirements.txt
+python scripts/package.py
+python scripts/package.py --verify 'artifacts/package/Pocket Quiet'
 ```
 
-Artifacts are written to `artifacts/app` and `artifacts/service`. Install Python 3.10+ and `python -m pip install -r scripts/requirements.txt`, then run `python scripts/package.py` after building to assemble the installable package. Packaging downloads the pinned, unmodified PawnIO installer and validates its SHA-256. See the development specification for IPC, control policy, installation layout, and failure behavior.
+Packaging includes source, docs, dependency notices, the pinned official PawnIO installer, a deployment manifest and ZIP SHA-256. It rejects stale versions or different app/service Core binaries. Manifest source commit and dirty status distinguish a release build from uncommitted work.
 
-## Contributing / device support
+For UI previews, run `PocketQuiet.exe --demo`. Every preview action, including reset and retry, is isolated from the real service. `--preview-mode Silent` selects a preview preset; `--screenshot PATH --exit-after-screenshot` captures a demo view.
 
-Do not extend the allowlist based only on a similar product name. Contributions for a new device or BIOS must include authoritative EC protocol references, reversible control/restore tests, temperature/RPM evidence, and recovery results. Never publish serial numbers, account names, private logs, credentials, or unrelated screenshots. Open an issue with the model, BIOS, Windows version, and a redacted failure description.
+## Contributing and license
 
-## License and credits
+Do not extend the device/BIOS gate merely because another product looks similar. Include authoritative EC references, reversible control/restore tests, temperature/RPM evidence and recovery results. Remove personal details from logs and screenshots.
 
-Pocket Quiet source is **GPL-2.0-or-later**. Hardware access is adapted from [Cryolitia/gpd-fan-driver](https://github.com/Cryolitia/gpd-fan-driver), the [Linux GPD driver](https://github.com/torvalds/linux/blob/master/drivers/hwmon/gpd-fan.c), and [chenx-dust/FanControl.GPDPlugin](https://github.com/chenx-dust/FanControl.GPDPlugin). Monitoring uses [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor) (MPL-2.0). Driver access uses the official signed [PawnIO](https://pawnio.eu/) distribution.
-
-See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) and [LICENSE](LICENSE). No affiliation with or endorsement by GPD is implied.
+Source is **GPL-2.0-or-later**. Hardware access credits: [Cryolitia/gpd-fan-driver](https://github.com/Cryolitia/gpd-fan-driver), [Linux GPD driver](https://github.com/torvalds/linux/blob/master/drivers/hwmon/gpd-fan.c), [chenx-dust/FanControl.GPDPlugin](https://github.com/chenx-dust/FanControl.GPDPlugin). Monitoring uses [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor), driver access uses [PawnIO](https://pawnio.eu/). See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) and [LICENSE](LICENSE). No GPD affiliation or endorsement is implied.

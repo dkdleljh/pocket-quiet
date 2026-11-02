@@ -20,7 +20,8 @@ e.Reset(); for (int i = 0; i < 100; i++) e.Step(S(40, offset: i), adaptive, now.
 Check(ControlEngine.Interpolate([new(40, 30), new(60, 50)], 50) == 40, "Curve interpolation");
 foreach (var invalid in new Settings[] { new() { Preference = double.NaN }, new() { Mode = (Preset)99 }, new() { Curve = [] }, new() { Curve = [new(40, 20), new(85, 100)] }, new() { Curve = [new(40, 60), new(60, 40), new(85, 100)] }, new() { Curve = [new(40, 30), new(80, 100)] } }) { bool rejected = false; try { invalid.Validate(); } catch (ArgumentException) { rejected = true; } Check(rejected, "Unsafe settings rejected"); }
 var random = new Random(19); bool bounded = true; foreach (var mode in Enum.GetValues<Preset>().Where(x => x != Preset.Firmware)) { e.Reset(); for (int i = 0; i < 10000; i++) { double t = 20 + random.NextDouble() * 85; d = e.Step(S(t, offset: i), new Settings { Mode = mode, Preference = random.NextDouble() * 2 - 1 }, now.AddSeconds(i)); bounded &= !d.Automatic && d.Output >= 30 && d.Output <= 100 && (t < 85 || d.Output == 100); } }
-Check(bounded, "50,000 randomized decisions preserve safety bounds");
+Check(bounded, "60,000 randomized decisions preserve safety bounds");
 var quiet = new ControlEngine(); var cool = new ControlEngine(); double q = 0, c = 0; for (int i = 0; i < 120; i++) { q = quiet.Step(S(60, offset: i), new Settings { Mode = Preset.Quiet }, now.AddSeconds(i)).Output!.Value; c = cool.Step(S(60, offset: i), new Settings { Mode = Preset.Cooling }, now.AddSeconds(i)).Output!.Value; }
 Check(q < c, "Cooling preset runs faster than quiet at same temperature");
+await RegressionTests.Run(Check);
 Console.WriteLine($"ALL {count} CHECKS PASSED");

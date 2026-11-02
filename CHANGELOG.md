@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.0
+
+- Add Silent (무소음 · 최소 소음), targeting 30% through 55°C without disabling thermal/stall safeguards or promising fan stop/0dB.
+- Avoid the initial 60% burst when a fresh sample confirms a running fan at or below 55°C; keep conservative startup for other conditions.
+- Skip hidden-window chart rendering and reduce hidden UI polling to five seconds while the controller stays at one second.
+- Preserve output, smoothing, deceleration and stall state when settings are reapplied. Complete deceleration to the curve instead of remaining 3% above it.
+- Enforce immediate 75°C/65% and 80°C/90% output floors; retain the 85°C/100% override.
+- Extract testable controller state, settings persistence, IPC, watchdog and asynchronous logging.
+- Separate measurement time from controller time; clear failed readings and retain protection history.
+- Cancel manual requests before restoring firmware; disk persistence failures cannot reactivate manual mode. Never confirm restoration without hardware verification.
+- Apply the exact device/BIOS gate to all EC access, including recovery and watchdog paths.
+- Monitor watchdog startup/liveness, release manual control on loss and retry the observer.
+- Isolate every demo command, prevent duplicate real UI instances, add applied/draft state, time axes, curve previews and 2–12-point editing.
+- Add power-efficiency settings shortcut and a sourced fan-noise/ANC guide; no automatic power-plan changes or anti-noise playback.
+- Add bounded IPC parsing, atomic reset, locked dependency restores, deployment hashes and staged installation with rollback.
+
 ## 0.1.1
 
 - Add the original mint fan badge to the executable, title bar, taskbar, desktop shortcut, sidebar, and system tray.
