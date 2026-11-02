@@ -16,6 +16,7 @@ Date: 2026-11-03 (Asia/Seoul). This section records this update; historical 0.1.
 - An invalid 0% custom curve was rejected through real IPC.
 - Silent was briefly applied on the allowlisted G1628-04 / BIOS 2.11, using verified EC writes, then firmware restoration was explicitly confirmed.
 - Terminated only the watchdog child while the service was in firmware mode. The service detected observer loss and launched a replacement; readiness and watchdog health recovered while retaining firmware mode.
+- Real desktop duplicate-launch regression passed: the second process exits successfully and the existing window is activated, leaving exactly one desktop process. Activation uses a pipe connection without an unread payload that could block shutdown.
 - These were short functional checks. No acoustic dB reduction or thermal stability certification is claimed.
 
 ## Remaining physical validation

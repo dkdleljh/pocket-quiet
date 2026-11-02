@@ -23,9 +23,13 @@ public partial class App : System.Windows.Application
                 try
                 {
                     using var pipe = new NamedPipeClientStream(".", Activation, PipeDirection.Out);
-                    pipe.Connect(1500); pipe.WriteByte(1);
+                    // Connecting is the activation signal; the server does not read a payload.
+                    pipe.Connect(1500);
                 }
-                catch { System.Windows.MessageBox.Show("Pocket Quiet가 이미 실행 중입니다. 트레이 아이콘을 열어주세요."); }
+                // Activation is best effort. A second instance must never stay alive in a modal dialog.
+                catch (IOException) { }
+                catch (TimeoutException) { }
+                catch (UnauthorizedAccessException) { }
                 Shutdown(); return;
             }
         }

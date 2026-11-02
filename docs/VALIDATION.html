@@ -14,6 +14,7 @@
 <li>An invalid 0% custom curve was rejected through real IPC.</li>
 <li>Silent was briefly applied on the allowlisted G1628-04 / BIOS 2.11, using verified EC writes, then firmware restoration was explicitly confirmed.</li>
 <li>Terminated only the watchdog child while the service was in firmware mode. The service detected observer loss and launched a replacement; readiness and watchdog health recovered while retaining firmware mode.</li>
+<li>Real desktop duplicate-launch regression passed: the second process exits successfully and the existing window is activated, leaving exactly one desktop process. Activation uses a pipe connection without an unread payload that could block shutdown.</li>
 <li>These were short functional checks. No acoustic dB reduction or thermal stability certification is claimed.</li>
 </ul>
 <h2>Remaining physical validation</h2>
