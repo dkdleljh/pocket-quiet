@@ -73,6 +73,7 @@ public partial class MainWindow : Window
             await Poll();
             timer.Tick += async (_, _) => await Poll();
             timer.Start();
+            await RunPowerAction("Status");
         };
     }
 
@@ -322,6 +323,24 @@ public partial class MainWindow : Window
         if (Directory.Exists(path)) OpenPath(path); else System.Windows.MessageBox.Show("아직 진단 기록이 없습니다.");
     }
     void OpenPowerSettings(object sender, RoutedEventArgs e) => OpenPath("ms-settings:powersleep");
+    async void ApplyQuietPower(object sender, RoutedEventArgs e) => await RunPowerAction("Apply");
+    async void RestorePower(object sender, RoutedEventArgs e) => await RunPowerAction("Restore");
+    async Task RunPowerAction(string action)
+    {
+        // Demo actions must never launch a real power-management process.
+        if (demo) { PowerProfileLabel.Text = "미리보기 · 실제 전원 설정은 변경하지 않습니다."; return; }
+        QuietPowerButton.IsEnabled = RestorePowerButton.IsEnabled = false;
+        try
+        {
+            using var result = JsonDocument.Parse(await ScriptRunner.Run("QuietPower", "-Action", action));
+            PowerProfileLabel.Text = result.RootElement.GetProperty("Verified").GetBoolean()
+                ? "저발열 전원 적용 중 · CPU 부스트 제한 · 기존 전원 복원 가능"
+                : result.RootElement.GetProperty("Active").GetBoolean() ? "전원 계획 값이 변경되었습니다. 저발열 전원을 다시 적용하세요."
+                : "기존 Windows 전원 사용 중";
+        }
+        catch (Exception ex) { PowerProfileLabel.Text = "전원 설정 확인 필요: " + ex.Message; }
+        finally { QuietPowerButton.IsEnabled = RestorePowerButton.IsEnabled = true; }
+    }
     void OpenManual(object sender, RoutedEventArgs e) => OpenDocument("USER_GUIDE.ko.html");
     void OpenNoiseGuide(object sender, RoutedEventArgs e) => OpenDocument("NOISE.ko.html");
     void OpenDocument(string name)

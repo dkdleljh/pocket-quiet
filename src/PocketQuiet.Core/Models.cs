@@ -60,7 +60,7 @@ public record Sample(DateTimeOffset Time, double? Temperature, int? Rpm, double?
 public record Decision(bool Automatic, double? Output, string Reason, bool Fault = false);
 public sealed record Status
 {
-    public string Version { get; init; } = "0.2.0";
+    public string Version { get; init; } = "0.3.0";
     public int ProtocolVersion { get; init; } = 2;
     // Time is the controller tick time; SampleTime only advances after a valid read.
     public DateTimeOffset Time { get; init; } = DateTimeOffset.UtcNow;

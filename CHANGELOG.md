@@ -1,3 +1,11 @@
+# 0.3.0 — signing preparation and low-heat power
+
+- Add reversible low-heat power plan, persistent original-plan backup, readback and rollback. Add explicit desktop apply/restore controls with isolated demo behavior.
+- Add executable `--install`, `--recover`, `--uninstall` entry points for signed deployments.
+- Fail installation before stopping the existing service when enforced SAC encounters unsigned components.
+- Add certificate-store / Artifact Signing support, complete runtime signature inventory, signed-package finalization and exact manifest inventory checks.
+- Public signing and end-to-end execution under SAC remain pending. This is not a signed release.
+
 # Changelog
 
 ## 0.2.0

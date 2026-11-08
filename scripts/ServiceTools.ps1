@@ -1,4 +1,5 @@
 $ErrorActionPreference = 'Stop'
+[Console]::OutputEncoding = [Text.Encoding]::UTF8
 function Wait-PocketProcesses {
  param([string]$Executable)
  for ($attempt = 0; $attempt -lt 20; $attempt++) {
@@ -9,14 +10,16 @@ function Wait-PocketProcesses {
  throw 'Previous service/watchdog has not exited. Files have not been replaced.'
 }
 function Invoke-PocketRequest {
- param([string]$Command='status')
+ param([string]$Command='status', [object]$Settings=$null)
  $pipe = New-Object System.IO.Pipes.NamedPipeClientStream('.', 'PocketQuiet.v1', [System.IO.Pipes.PipeDirection]::InOut)
  try {
   $pipe.Connect(3000)
   $writer = New-Object System.IO.StreamWriter($pipe)
   $writer.AutoFlush = $true
   $reader = New-Object System.IO.StreamReader($pipe)
-  $writer.WriteLine((@{Command=$Command} | ConvertTo-Json -Compress))
+  $request = @{Command=$Command}
+  if ($null -ne $Settings) { $request.Settings = $Settings }
+  $writer.WriteLine(($request | ConvertTo-Json -Compress -Depth 8))
   $read = $reader.ReadLineAsync()
   if (-not $read.Wait(4000)) { throw 'Service response timed out.' }
   $result = $read.Result | ConvertFrom-Json
@@ -52,6 +55,6 @@ function Test-PocketPackage {
   if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Missing package file: $($entry.Name)" }
   if ((Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $entry.Value) { throw "Package hash mismatch: $($entry.Name)" }
  }
- if ($manifest.Version -ne '0.2.0') { throw 'Unexpected package version.' }
+ if ($manifest.Version -ne '0.3.0') { throw 'Unexpected package version.' }
  return $manifest
 }

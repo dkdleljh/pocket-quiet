@@ -3,6 +3,11 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'ServiceTools.ps1')
 $package = Split-Path $PSScriptRoot -Parent
 $manifest = Test-PocketPackage $package
+$sac = Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Control\CI\Policy' -ErrorAction SilentlyContinue
+if ($sac.VerifiedAndReputablePolicyState -eq 1 -or $manifest.SignatureVerification) {
+ # Fail before stopping a working service. A file hash is not a publisher signature.
+ & (Join-Path $PSScriptRoot 'Test-Signatures.ps1') -Package $package -RequireValid | Out-Null
+}
 $target = Join-Path $env:ProgramFiles 'Pocket Quiet'
 $data = Join-Path $env:ProgramData 'PocketQuiet'
 $serviceExe = Join-Path $target 'PocketQuiet.Service.exe'
@@ -62,7 +67,7 @@ try {
  $shortcut.IconLocation = (Join-Path $package 'Assets\PocketQuiet.ico') + ',0'
  $shortcut.Description = 'Pocket Quiet - quiet thermal fan control'
  $shortcut.Save()
- Write-Host 'Pocket Quiet 0.2.0 installed and responding. Starts in firmware automatic mode.'
+ Write-Host 'Pocket Quiet 0.3.0 installed and responding. Starts in firmware automatic mode.'
  if (Test-Path $backup) { Write-Host "Previous service retained at: $backup" }
 } catch {
  $failure = $_

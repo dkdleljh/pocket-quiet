@@ -2,7 +2,7 @@
 
 **Local, temperature-aware fan control for GPD Pocket 4 on Windows.**
 
-Pocket Quiet combines a Korean desktop interface, a dedicated control service and an independent recovery watchdog. Version **0.2.0** adds a Silent preset, smoother preset changes, verified recovery state, sensor freshness, retained protection history and a testable controller.
+Pocket Quiet combines a Korean desktop interface, a dedicated control service and an independent recovery watchdog. Version **0.3.0** adds a reversible low-heat power plan, an executable maintenance entry point, and whole-package Authenticode verification. Public signing is pending; this source build is not yet SAC-qualified.
 
 ![Pocket Quiet interface — demo values](docs/screenshot.png)
 
@@ -11,7 +11,7 @@ Manual control and EC access are restricted to **GPD G1628-04 / G1628-04-L, BIOS
 ## 설치 / 업데이트
 
 1. [Releases](../../releases)에서 전체 ZIP을 받아 압축을 풉니다. 개발 빌드는 [Actions](../../actions)의 검증된 아티팩트를 사용할 수 있습니다.
-2. 기존 팬 제어 도구를 종료하고 `Install.cmd`를 실행합니다.
+2. 서명된 전체 배포본에서 `PocketQuiet.exe --install`을 실행합니다. 기존 `Install.cmd`도 개발용으로 남아 있습니다. SAC가 켜져 있으면 모든 실행 구성요소의 서명이 확인되어야 설치가 진행됩니다.
 3. 설치기는 파일 SHA-256, 필요한 PawnIO 설치 파일 서명, 새 서비스의 준비 상태를 확인합니다. 기존 서비스 폴더를 보존하고 새 설치가 실패하면 복원을 시도합니다.
 4. 바탕화면 바로가기로 앱을 열고 **적용 상태·정상 측정 시각·복구 감시**를 확인합니다.
 5. 사용할 프리셋을 선택하고 **프리셋 적용**을 누릅니다.
@@ -34,9 +34,9 @@ Manual control and EC access are restricted to **GPD G1628-04 / G1628-04-L, BIOS
 
 “AI automatic” is deterministic local temperature-trend compensation, not a neural network or learning system. CPU load and package power are diagnostic readings, not control inputs.
 
-Sustained high temperature requires cooling even in Silent mode. A Windows power-efficiency shortcut and the noise guide help address heat generation. The app does not automatically change power plans, TDP, CPU boost or voltage. Acoustic improvement and long-duration thermal stability require physical measurement.
+Sustained high temperature requires cooling even in Silent mode. A Windows power-efficiency shortcut and the noise guide help address heat generation. The **저발열 전원 적용** action explicitly creates a separate power plan with CPU boost disabled and a stronger energy-efficiency preference. It preserves the original plan and provides **기존 전원 복원**; it does not change TDP, voltage or thermal safeguards. This can reduce workload performance. Acoustic improvement and long-duration thermal stability require physical measurement.
 
-The watchdog cannot guarantee recovery from OS/kernel hangs, failed drivers, hardware faults or arbitrary external EC writers. App/service executables are not Authenticode-signed; the independently signed PawnIO installer is verified separately. Deployment hashes detect corruption/mixed files, not publisher identity.
+The watchdog cannot guarantee recovery from OS/kernel hangs, failed drivers, hardware faults or arbitrary external EC writers. Current development app/service executables are not Authenticode-signed; the independently signed PawnIO installer is verified separately. Deployment hashes detect corruption/mixed files, not publisher identity.
 
 ## Development
 
@@ -68,3 +68,7 @@ For UI previews, run `PocketQuiet.exe --demo`. Every preview action, including r
 Do not extend the device/BIOS gate merely because another product looks similar. Include authoritative EC references, reversible control/restore tests, temperature/RPM evidence and recovery results. Remove personal details from logs and screenshots.
 
 Source is **GPL-2.0-or-later**. Hardware access credits: [Cryolitia/gpd-fan-driver](https://github.com/Cryolitia/gpd-fan-driver), [Linux GPD driver](https://github.com/torvalds/linux/blob/master/drivers/hwmon/gpd-fan.c), [chenx-dust/FanControl.GPDPlugin](https://github.com/chenx-dust/FanControl.GPDPlugin). Monitoring uses [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor), driver access uses [PawnIO](https://pawnio.eu/). See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) and [LICENSE](LICENSE). No GPD affiliation or endorsement is implied.
+
+## Code signing policy
+
+See [code signing status, procedure and prerequisites](docs/CODE_SIGNING.md). A release is not described as SAC-compatible until every executable component has a valid trusted signature and the full app/service/driver/recovery path has run under enforced SAC. No security policy is disabled or bypassed by the installer.

@@ -1,5 +1,5 @@
 <!doctype html><html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DEVELOPMENT.ko — Pocket Quiet</title><style>body{font:16px/1.8 "Segoe UI","Malgun Gothic",sans-serif;color:#203633;background:#f4f8f5;margin:auto;max-width:1000px;padding:40px}h1,h2,h3{line-height:1.4;color:#133e32}h2{margin-top:44px;border-bottom:1px solid #cadad2;padding-bottom:12px}table{border-collapse:collapse;width:100%;background:white}td,th{border:1px solid #cadad2;padding:10px;text-align:left}pre{background:#182c29;color:#e6f4ea;padding:18px;overflow:auto;border-radius:10px}code{font-family:Consolas,monospace}a{color:#137656}img{max-width:100%}blockquote{border-left:4px solid #4b9b75;padding-left:20px} @media print{body{padding:0;font-size:11pt}pre{white-space:pre-wrap}h2{break-after:avoid}table{break-inside:avoid}}</style><body><h1 id="pocket-quiet">Pocket Quiet 개발명세서</h1>
-<p>버전 0.2.0 · Windows x64 · GPL-2.0-or-later</p>
+<p>버전 0.3.0 · Windows x64 · GPL-2.0-or-later</p>
 <h2 id="_1">구조</h2>
 <table>
 <thead>
@@ -65,4 +65,7 @@
 <h2 id="_6">빌드·배포</h2>
 <p>소스 루트에서 scripts/build.ps1 또는 scripts/build.sh를 실행합니다. 프로젝트 잠금 파일로 restore하고 tests 실행 후 두 실행 프로젝트를 publish합니다. Python 의존성 설치 후 scripts/package.py로 HTML 문서, 전체 소스, 고정 SHA의 공식 PawnIO 설치 파일, notices/licenses, ZIP을 조립합니다.</p>
 <p>배포 manifest에 파일 SHA-256, 버전, 소스 커밋과 dirty 여부를 기록합니다. 이는 파일 손상·혼합 검출용이며 게시자 서명을 대신하지 않습니다. 앱/서비스는 Authenticode 미서명입니다. 설치는 새 파일을 staging에 준비하고, 기존 서비스 중지와 watchdog 종료를 확인한 뒤 교체합니다. 검증 실패 시 이전 서비스 복원을 시도하고 이전 폴더는 보존합니다.</p>
-<p>CI는 Windows 정책·상태 테스트, publish, 패키징을 수행합니다. 실제 열·소음·절전 검증은 CI에서 수행할 수 없습니다. 검증 기록은 VALIDATION.md에 구분합니다.</p></body></html>
+<p>CI는 Windows 정책·상태 테스트, publish, 패키징을 수행합니다. 실제 열·소음·절전 검증은 CI에서 수행할 수 없습니다. 검증 기록은 VALIDATION.md에 구분합니다.</p>
+<h2 id="030">0.3.0 서명 준비와 저발열 전원</h2>
+<p><code>QuietPower.ps1</code>은 기존 계획을 복제하고 원본 GUID 및 <code>.pow</code> 백업을 관리자 전용 데이터 폴더에 보관합니다. 전원 값은 AC/DC 모두 쓰기 후 확인하고 적용 실패 시 이전 활성 계획으로 복귀합니다. 반복 적용은 원본 백업을 덮어쓰지 않고, 복원 시 사용자가 선택한 별도 계획은 유지합니다. UI 데모는 이 스크립트를 실행하지 않습니다.</p>
+<p><code>Sign-Package.ps1</code>, <code>Test-Signatures.ps1</code>, <code>package.py --finalize-signed</code>가 서명→현재 파일 검증→manifest/ZIP 재생성을 처리합니다. SAC가 적용 중인 설치는 기존 서비스를 중지하기 전에 모든 실행 구성요소 서명을 확인합니다. 공인 서명 자격 증명이 아직 없어 실제 서명 성공 경로는 미검증입니다. <a href="CODE_SIGNING.md">서명 절차와 외부 의존성</a>을 참고하세요.</p></body></html>
