@@ -89,7 +89,7 @@ class PackageIntegrityTests(unittest.TestCase):
         ) as check, patch.object(package, "archive_package") as archive:
             package.finalize_signed(self.root)
             check.assert_called_once()
-            archive.assert_called_once_with(self.root)
+            archive.assert_called_once_with(self.root.resolve())
         package.verify(self.root)
         updated = json.loads((self.root / "deployment-manifest.json").read_text())
         self.assertEqual(package.sha256(self.root / "app.dll"), updated["Files"]["app.dll"])
