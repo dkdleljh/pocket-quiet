@@ -20,7 +20,7 @@ if ($PSCmdlet.ParameterSetName -eq 'ArtifactSigning') {
  if (-not $certificate.HasPrivateKey -or $certificate.NotAfter -lt (Get-Date) -or $certificate.Subject -eq $certificate.Issuer) {
   throw 'Use a current CA-issued code signing certificate with an accessible private key, not a self-signed certificate.'
  }
- if ('1.3.6.1.5.5.7.3.3' -notin @($certificate.EnhancedKeyUsageList | ForEach-Object {$_.ObjectId.Value})) {
+ if ('1.3.6.1.5.5.7.3.3' -notin @($certificate.EnhancedKeyUsageList | ForEach-Object {$_.ObjectId})) {
   throw 'The selected certificate does not have the code signing EKU.'
  }
 }
