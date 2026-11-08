@@ -14,6 +14,18 @@ public partial class App : System.Windows.Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        // A signable executable entry point avoids dependence on downloaded .cmd launchers.
+        // Demo flags cannot be combined with maintenance commands.
+        string? maintenance = e.Args.Length == 1 ? e.Args[0] switch
+        {
+            "--install" => "Install", "--recover" => "Recover", "--uninstall" => "Uninstall", _ => null
+        } : null;
+        if (maintenance is not null)
+        {
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            RunMaintenance(maintenance);
+            return;
+        }
         // Demo previews can run alongside the real UI and never send control requests.
         if (!e.Args.Contains("--demo"))
         {
@@ -46,6 +58,13 @@ public partial class App : System.Windows.Application
             activationStop = new();
             _ = ListenForActivation(window, activationStop.Token);
         }
+    }
+    async void RunMaintenance(string task)
+    {
+        int result = 0;
+        try { System.Windows.MessageBox.Show(await ScriptRunner.Run(task), "Pocket Quiet"); }
+        catch (Exception ex) { result = 1; System.Windows.MessageBox.Show(ex.Message, "Pocket Quiet · 작업 실패"); }
+        Shutdown(result);
     }
     async Task ListenForActivation(MainWindow window, CancellationToken token)
     {

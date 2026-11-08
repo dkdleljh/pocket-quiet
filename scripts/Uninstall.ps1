@@ -1,6 +1,7 @@
 #Requires -RunAsAdministrator
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'ServiceTools.ps1')
+& (Join-Path $PSScriptRoot 'QuietPower.ps1') -Action Restore | Out-Null
 $target = Join-Path $env:ProgramFiles 'Pocket Quiet'
 $exe = Join-Path $target 'PocketQuiet.Service.exe'
 $service = Get-Service PocketQuiet -ErrorAction SilentlyContinue

@@ -1,4 +1,31 @@
-<!doctype html><html lang="en"><meta charset="utf-8"><title>Validation — Pocket Quiet</title><style>body{font:16px/1.8 "Segoe UI","Malgun Gothic",sans-serif;color:#203633;background:#f4f8f5;margin:auto;max-width:1000px;padding:40px}h1,h2,h3{line-height:1.4;color:#133e32}h2{margin-top:44px;border-bottom:1px solid #cadad2;padding-bottom:12px}table{border-collapse:collapse;width:100%;background:white}td,th{border:1px solid #cadad2;padding:10px;text-align:left}pre{background:#182c29;color:#e6f4ea;padding:18px;overflow:auto;border-radius:10px}code{font-family:Consolas,monospace}a{color:#137656}img{max-width:100%}blockquote{border-left:4px solid #4b9b75;padding-left:20px} @media print{body{padding:0;font-size:11pt}pre{white-space:pre-wrap}h2{break-after:avoid}table{break-inside:avoid}}</style><body><h1>Validation report — 0.2.0</h1>
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Validation — Pocket Quiet</title><style>body{font:16px/1.8 "Segoe UI","Malgun Gothic",sans-serif;color:#203633;background:#f4f8f5;margin:auto;max-width:1000px;padding:40px}h1,h2,h3{line-height:1.4;color:#133e32}h2{margin-top:44px;border-bottom:1px solid #cadad2;padding-bottom:12px}table{border-collapse:collapse;width:100%;background:white}td,th{border:1px solid #cadad2;padding:10px;text-align:left}pre{background:#182c29;color:#e6f4ea;padding:18px;overflow:auto;border-radius:10px}code{font-family:Consolas,monospace}a{color:#137656}img{max-width:100%}blockquote{border-left:4px solid #4b9b75;padding-left:20px} @media print{body{padding:0;font-size:11pt}pre{white-space:pre-wrap}h2{break-after:avoid}table{break-inside:avoid}}</style><body><h1>Validation report — 0.3.0 development / signing pending</h1>
+<p>Date: 2026-11-08 (Asia/Seoul). Physical target: GPD G1628-04, BIOS 2.11, Windows build 26300.9818.</p>
+<h2>Verified in this session</h2>
+<ul>
+<li>GitHub default-branch revision matched the initial local source (<code>b52bec4</code>).</li>
+<li>SAC was enforced (<code>VerifiedAndReputablePolicyState=1</code>). Event 3077 identified the original unsigned desktop executable. Security policy was not modified.</li>
+<li>94 controller/state/protocol checks passed, including the existing 60,000 randomized decisions. Windows app/service self-contained builds completed with locked restores.</li>
+<li>Nine Python package checks passed: integrity, extra executable, missing/tampered file, version/path rejection, non-signable signing-stage change rejection, failed signature check preserving the manifest, and post-verification hash regeneration. Signature calls in the finalization unit tests are mocked; they are not evidence of actual public signing.</li>
+<li>All PowerShell scripts parsed on Windows PowerShell 5.1.</li>
+<li>The newly compiled 0.3.0 WPF executable launched normally while SAC remained enabled. A demo screenshot was inspected. UI Automation exercised both demo power buttons and verified that the actual plan and backup did not change.</li>
+<li>The packaged real UI connected to the installed 0.2.0 service and displayed real sensors. UI Automation exercised original-power restore and low-heat apply, with actual Windows power-plan readback.</li>
+<li>Power integration checked repeated apply preserving the original backup, restoration of the original High Performance plan, repeated restore, and preservation of an independently selected Balanced plan. Low Heat was reapplied afterward.</li>
+<li>The existing service accepted Silent, reported 30% output and healthy watchdog during a 60-second sample, then verified firmware restoration. A later status sample confirmed Ready=true, WatchdogHealthy=true and no error.</li>
+<li>Unsigned install preflight rejected the package before stopping the existing service (PID unchanged). Runtime signature inventory: 665 of 687 files valid, 22 unsigned, including project files, scripts and five upstream sensor libraries.</li>
+</ul>
+<h2>Observations, not an acoustic benchmark</h2>
+<p>Before power changes, 30 samples over about one minute averaged 42.13°C, 2,586.53 RPM, 4.80 W and 3.35% CPU load. The final 30 samples of a two-minute Low Heat observation averaged 38.61°C, 2,499.20 RPM, 3.28 W and 4.92% CPU load. Workload was not held constant; these readings do not establish a causal reduction percentage or a dB result.</p>
+<p>During Silent with Low Heat, the final 15 samples averaged 36.16°C and 2,523.07 RPM at 30% fan output. Firmware automatic was slightly quieter by RPM in this light workload, so the machine was left in Firmware with Low Heat power active. No lower fan floor, undervolting, TDP write or thermal-protection reduction was introduced.</p>
+<h2>Still required before completion</h2>
+<ul>
+<li>Obtain an eligible public signing identity and resolve all upstream DLL signatures. No provider application has been submitted and no public signature was produced.</li>
+<li>Verify the actual signed-file path through final ZIP download, installation, UI, service, watchdog, power buttons, recovery and reboot under enforced SAC. Current local unsigned-build acceptance is not a durable public-trust guarantee.</li>
+<li>The installed service remains 0.2.0; the new service was built but not installed because its signature preflight correctly fails. The 0.3.0 UI is protocol-compatible with this running service.</li>
+<li>Sustained CPU/GPU load, sleep/resume, ambient-temperature variation and acoustic measurements remain unqualified. No “perfectly silent” or universal future compatibility claim is made.</li>
+</ul>
+<p>Local raw evidence is in <code>artifacts/validation</code> (not committed; contains this machine's runtime data).</p>
+<hr />
+<h1>Validation report — 0.2.0</h1>
 <p>Date: 2026-11-03 (Asia/Seoul). This section records this update; historical 0.1.x results follow separately.</p>
 <h2>Automated and build verification</h2>
 <ul>

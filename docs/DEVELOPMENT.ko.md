@@ -1,6 +1,6 @@
 # Pocket Quiet 개발명세서
 
-버전 0.2.0 · Windows x64 · GPL-2.0-or-later
+버전 0.3.0 · Windows x64 · GPL-2.0-or-later
 
 ## 구조
 
@@ -71,3 +71,9 @@ settings.json은 같은 디렉터리의 고유 임시 파일에 쓰고 flush 후
 배포 manifest에 파일 SHA-256, 버전, 소스 커밋과 dirty 여부를 기록합니다. 이는 파일 손상·혼합 검출용이며 게시자 서명을 대신하지 않습니다. 앱/서비스는 Authenticode 미서명입니다. 설치는 새 파일을 staging에 준비하고, 기존 서비스 중지와 watchdog 종료를 확인한 뒤 교체합니다. 검증 실패 시 이전 서비스 복원을 시도하고 이전 폴더는 보존합니다.
 
 CI는 Windows 정책·상태 테스트, publish, 패키징을 수행합니다. 실제 열·소음·절전 검증은 CI에서 수행할 수 없습니다. 검증 기록은 VALIDATION.md에 구분합니다.
+
+## 0.3.0 서명 준비와 저발열 전원
+
+`QuietPower.ps1`은 기존 계획을 복제하고 원본 GUID 및 `.pow` 백업을 관리자 전용 데이터 폴더에 보관합니다. 전원 값은 AC/DC 모두 쓰기 후 확인하고 적용 실패 시 이전 활성 계획으로 복귀합니다. 반복 적용은 원본 백업을 덮어쓰지 않고, 복원 시 사용자가 선택한 별도 계획은 유지합니다. UI 데모는 이 스크립트를 실행하지 않습니다.
+
+`Sign-Package.ps1`, `Test-Signatures.ps1`, `package.py --finalize-signed`가 서명→현재 파일 검증→manifest/ZIP 재생성을 처리합니다. SAC가 적용 중인 설치는 기존 서비스를 중지하기 전에 모든 실행 구성요소 서명을 확인합니다. 공인 서명 자격 증명이 아직 없어 실제 서명 성공 경로는 미검증입니다. [서명 절차와 외부 의존성](CODE_SIGNING.md)을 참고하세요.

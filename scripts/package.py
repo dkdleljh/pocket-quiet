@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import html
 import json
+import os
 import shutil
 import subprocess
 import urllib.request
@@ -43,6 +44,9 @@ def verify(directory):
     manifest = json.loads((directory / "deployment-manifest.json").read_text(encoding="utf-8"))
     if manifest["Version"] != VERSION:
         raise SystemExit("Package version mismatch")
+    actual = {p.relative_to(directory).as_posix() for p in directory.rglob("*") if p.is_file()}
+    if actual - {"deployment-manifest.json"} != set(manifest["Files"]):
+        raise SystemExit("Package contains missing or unlisted files")
     for relative, digest in manifest["Files"].items():
         path = (directory / relative).resolve()
         if not path.is_relative_to(directory.resolve()) or not path.is_file() or sha256(path) != digest:
@@ -50,11 +54,59 @@ def verify(directory):
     print(f"Verified {len(manifest['Files'])} package files")
 
 
+def archive_package(out):
+    zip_path = ROOT / "artifacts" / f"PocketQuiet-{VERSION}-win-x64.zip"
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
+        for path in sorted(out.rglob("*")):
+            if path.is_file():
+                archive.write(path, Path("Pocket Quiet") / path.relative_to(out))
+    digest = sha256(zip_path)
+    (ROOT / "artifacts/SHA256SUMS.txt").write_text(digest + "  " + zip_path.name + "\n", encoding="ascii")
+    print(zip_path)
+    print("SHA256", digest)
+
+
+def finalize_signed(out):
+    # A cached JSON report cannot prove that the current files are signed.
+    if os.name != "nt":
+        raise SystemExit("Finalizing a signed release requires Windows Authenticode verification")
+    out = out.resolve()
+    manifest_path = out / "deployment-manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    if manifest["Version"] != VERSION:
+        raise SystemExit("Package version mismatch")
+    old_files = manifest["Files"]
+    current = {p.relative_to(out).as_posix() for p in out.rglob("*") if p.is_file()}
+    if current - {"deployment-manifest.json", "signatures.json"} != set(old_files) - {"signatures.json"}:
+        raise SystemExit("Signed package inventory differs from the unsigned build")
+    # Only signable runtime payloads may change between packaging and signing.
+    for relative, digest in old_files.items():
+        path = (out / relative).resolve()
+        if not path.is_relative_to(out) or not path.is_file():
+            raise SystemExit(f"Invalid package path: {relative}")
+        signable = path.suffix.lower() in {".exe", ".dll", ".ps1"} and not relative.startswith("source/")
+        if relative != "signatures.json" and not signable and sha256(path) != digest:
+            raise SystemExit(f"Non-signable file changed after packaging: {relative}")
+    subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "RemoteSigned",
+                    "-File", str(ROOT / "scripts/Test-Signatures.ps1"), "-Package", str(out),
+                    "-RequireValid", "-ReportPath", str(out / "signatures.json")], check=True)
+    manifest["SignatureVerification"] = "AuthenticodeValid-LiveSacTestRequired"
+    manifest["Files"] = {p.relative_to(out).as_posix(): sha256(p) for p in sorted(out.rglob("*"))
+                         if p.is_file() and p != manifest_path}
+    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    verify(out)
+    archive_package(out)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--render-docs", action="store_true")
     parser.add_argument("--verify", type=Path)
+    parser.add_argument("--finalize-signed", type=Path)
     options = parser.parse_args()
+    if options.finalize_signed:
+        finalize_signed(options.finalize_signed)
+        return
     if options.verify:
         verify(options.verify)
         return
@@ -109,15 +161,7 @@ def main():
                 "Files": {str(path.relative_to(out)).replace("\\", "/"): sha256(path) for path in sorted(out.rglob("*")) if path.is_file()}}
     (out / "deployment-manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     verify(out)
-    zip_path = ROOT / "artifacts" / f"PocketQuiet-{VERSION}-win-x64.zip"
-    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as archive:
-        for path in sorted(out.rglob("*")):
-            if path.is_file():
-                archive.write(path, path.relative_to(out.parent))
-    digest = sha256(zip_path)
-    (ROOT / "artifacts/SHA256SUMS.txt").write_text(digest + "  " + zip_path.name + "\n", encoding="ascii")
-    print(zip_path)
-    print("SHA256", digest)
+    archive_package(out)
 
 
 if __name__ == "__main__":

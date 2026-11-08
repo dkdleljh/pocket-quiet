@@ -5,7 +5,7 @@
       "pocketquiet.control": {
         "type": "Project",
         "dependencies": {
-          "PocketQuiet.Core": "[0.2.0, )"
+          "PocketQuiet.Core": "[0.3.0, )"
         }
       },
       "pocketquiet.core": {

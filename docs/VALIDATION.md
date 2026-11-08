@@ -1,3 +1,37 @@
+# Validation report — 0.3.0 development / signing pending
+
+Date: 2026-11-08 (Asia/Seoul). Physical target: GPD G1628-04, BIOS 2.11, Windows build 26300.9818.
+
+## Verified in this session
+
+- GitHub default-branch revision matched the initial local source (`b52bec4`).
+- SAC was enforced (`VerifiedAndReputablePolicyState=1`). Event 3077 identified the original unsigned desktop executable. Security policy was not modified.
+- 94 controller/state/protocol checks passed, including the existing 60,000 randomized decisions. Windows app/service self-contained builds completed with locked restores.
+- Nine Python package checks passed: integrity, extra executable, missing/tampered file, version/path rejection, non-signable signing-stage change rejection, failed signature check preserving the manifest, and post-verification hash regeneration. Signature calls in the finalization unit tests are mocked; they are not evidence of actual public signing.
+- All PowerShell scripts parsed on Windows PowerShell 5.1.
+- The newly compiled 0.3.0 WPF executable launched normally while SAC remained enabled. A demo screenshot was inspected. UI Automation exercised both demo power buttons and verified that the actual plan and backup did not change.
+- The packaged real UI connected to the installed 0.2.0 service and displayed real sensors. UI Automation exercised original-power restore and low-heat apply, with actual Windows power-plan readback.
+- Power integration checked repeated apply preserving the original backup, restoration of the original High Performance plan, repeated restore, and preservation of an independently selected Balanced plan. Low Heat was reapplied afterward.
+- The existing service accepted Silent, reported 30% output and healthy watchdog during a 60-second sample, then verified firmware restoration. A later status sample confirmed Ready=true, WatchdogHealthy=true and no error.
+- Unsigned install preflight rejected the package before stopping the existing service (PID unchanged). Runtime signature inventory: 665 of 687 files valid, 22 unsigned, including project files, scripts and five upstream sensor libraries.
+
+## Observations, not an acoustic benchmark
+
+Before power changes, 30 samples over about one minute averaged 42.13°C, 2,586.53 RPM, 4.80 W and 3.35% CPU load. The final 30 samples of a two-minute Low Heat observation averaged 38.61°C, 2,499.20 RPM, 3.28 W and 4.92% CPU load. Workload was not held constant; these readings do not establish a causal reduction percentage or a dB result.
+
+During Silent with Low Heat, the final 15 samples averaged 36.16°C and 2,523.07 RPM at 30% fan output. Firmware automatic was slightly quieter by RPM in this light workload, so the machine was left in Firmware with Low Heat power active. No lower fan floor, undervolting, TDP write or thermal-protection reduction was introduced.
+
+## Still required before completion
+
+- Obtain an eligible public signing identity and resolve all upstream DLL signatures. No provider application has been submitted and no public signature was produced.
+- Verify the actual signed-file path through final ZIP download, installation, UI, service, watchdog, power buttons, recovery and reboot under enforced SAC. Current local unsigned-build acceptance is not a durable public-trust guarantee.
+- The installed service remains 0.2.0; the new service was built but not installed because its signature preflight correctly fails. The 0.3.0 UI is protocol-compatible with this running service.
+- Sustained CPU/GPU load, sleep/resume, ambient-temperature variation and acoustic measurements remain unqualified. No “perfectly silent” or universal future compatibility claim is made.
+
+Local raw evidence is in `artifacts/validation` (not committed; contains this machine's runtime data).
+
+---
+
 # Validation report — 0.2.0
 
 Date: 2026-11-03 (Asia/Seoul). This section records this update; historical 0.1.x results follow separately.

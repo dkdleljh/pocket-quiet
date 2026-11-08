@@ -21,14 +21,23 @@ jobs:
         run: |
           python -m pip install -r scripts/requirements.txt
           if ($LASTEXITCODE -ne 0) { throw 'Python dependencies failed.' }
+          python -m unittest discover -s tests -p 'test_*.py'
+          if ($LASTEXITCODE -ne 0) { throw 'Package integrity tests failed.' }
+          Get-ChildItem scripts/*.ps1 | ForEach-Object {
+            $tokens = $null; $errors = $null
+            $null = [Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$tokens, [ref]$errors)
+            if ($errors) { throw ($errors | Out-String) }
+          }
           python scripts/package.py
           if ($LASTEXITCODE -ne 0) { throw 'Packaging failed.' }
           python scripts/package.py --verify 'artifacts/package/Pocket Quiet'
           if ($LASTEXITCODE -ne 0) { throw 'Package verification failed.' }
+          ./scripts/Test-Signatures.ps1 -Package 'artifacts/package/Pocket Quiet' -ReportPath artifacts/signatures.json | Out-Null
       - uses: actions/upload-artifact@v4
         with:
-          name: PocketQuiet-win-x64
+          name: PocketQuiet-unsigned-win-x64
           path: |
             artifacts/*.zip
             artifacts/SHA256SUMS.txt
+            artifacts/signatures.json
           if-no-files-found: error
